@@ -16,6 +16,7 @@ KCM.SimpleKCM {
     property alias cfg_school: schoolField.currentIndex
     property alias cfg_languageIndex: languageField.currentIndex
     property alias cfg_compactStyle: compactStyleComboBox.currentIndex
+    property alias cfg_preNotificationMinutes: preNotificationSpinBox.value
     property alias cfg_hijriOffset: hijriOffsetSpinBox.value
     property alias cfg_fajrOffsetMinutes: fajrOffsetSpin.value
     property alias cfg_sunriseOffsetMinutes: sunriseOffsetSpin.value
@@ -251,6 +252,13 @@ KCM.SimpleKCM {
         Kirigami.Separator {
             Kirigami.FormData.isSection: true
             Kirigami.FormData.label: i18n("Date & Time Adjustments")
+        }
+        SpinBox{
+            id: preNotificationSpinBox
+            Kirigami.FormData.label: i18n("Pre-Adhan Notification (minutes)")
+            from: 0 // 0 means turned off
+            to: 60
+            value: plasmoid.configuration.preNotificationMinutes || 10 
         }
         SpinBox {
             id: hijriOffsetSpinBox

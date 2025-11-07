@@ -29,6 +29,7 @@ PlasmoidItem {
     // Active prayer tracking
     property string lastActivePrayer: ""
     property string activePrayer: ""
+    property var preNotifiedPrayers: ({})  // Tracks which prayers we've already sent pre-notifications for
 
     // Configuration dependent properties
     property bool isSmall: width < (Kirigami.Units.gridUnit * 10) || height < (Kirigami.Units.gridUnit * 10)
@@ -106,6 +107,7 @@ PlasmoidItem {
             if (root.times && Object.keys(root.times).length > 0 && root.displayPrayerTimes.apiGregorianDate && getFormattedDate(new Date()) === root.displayPrayerTimes.apiGregorianDate) {
                 if (Object.keys(root.displayPrayerTimes).length > 0) {
                     root.highlightActivePrayer(root.displayPrayerTimes);
+                    root.checkPreNotifications(root.displayPrayerTimes);  // ← Add your new function here
                 } else if (Object.keys(root.times).length > 0) {
                     processRawTimesAndApplyOffsets();
                 }
@@ -294,6 +296,65 @@ PlasmoidItem {
         console.log("Playing adhan for", prayerName, "from:", sourceUrl, "- Mode:", root.adhanPlaybackMode, "Volume:", root.adhanVolume)
     }
 
+   function checkPreNotifications(currentTimingsToUse) {
+    // Only proceed if pre-notifications are enabled
+    if (!Plasmoid.configuration.preNotificationMinutes || 
+        Plasmoid.configuration.preNotificationMinutes <= 0) {
+        return;
+    }
+    
+    if (!currentTimingsToUse || !currentTimingsToUse.Fajr) {
+        return;
+    }
+    
+    const now = new Date();
+    const notificationWindow = Plasmoid.configuration.preNotificationMinutes;
+    const prayerKeys = ["Fajr", "Dhuhr", "Asr", "Maghrib", "Isha"]; // Exclude Sunrise
+    
+    for (const prayerName of prayerKeys) {
+        const prayerTimeStr = currentTimingsToUse[prayerName];
+        if (!prayerTimeStr || prayerTimeStr === "--:--") continue;
+        
+        // Use the existing parseTime function
+        let prayerTime = parseTime(prayerTimeStr);
+        
+        // Handle Fajr crossing midnight (same logic as calculateNextPrayer)
+        if (prayerName === "Fajr" && prayerTime < now) {
+            prayerTime.setDate(prayerTime.getDate() + 1);
+        }
+        
+        // Calculate difference in milliseconds
+        let diffMs = prayerTime.getTime() - now.getTime();
+        
+        // Convert to minutes (1000ms * 60s = 1 minute)
+        const minutesUntil = Math.floor(diffMs / (1000 * 60));
+        
+        // Check if within notification window
+        // For example: if window is 10 minutes, notify when between 1-10 minutes remain
+        if (minutesUntil > 0 && minutesUntil <= notificationWindow) {
+            // Create a unique key: prayer name + today's date
+            // This ensures we only notify once per prayer per day
+            const todayKey = getYYYYMMDD(now);
+            const notificationKey = prayerName + "-" + todayKey;
+            
+            // Check if we haven't already notified for this prayer today
+            if (!root.preNotifiedPrayers[notificationKey]) {
+                // Send the notification
+                var notification = notificationComponent.createObject(root);
+                notification.title = i18n("%1 in %2 minutes", 
+                    getPrayerName(root.languageIndex, prayerName), 
+                    minutesUntil);
+                notification.text = i18n("Prayer time reminder");
+                notification.sendEvent();
+                
+                // Mark this prayer as notified
+                root.preNotifiedPrayers[notificationKey] = true;
+                
+                console.log("Pre-notification sent for", prayerName, "with", minutesUntil, "minutes remaining");
+            }
+        }
+    }
+} 
     function highlightActivePrayer(currentTimingsToUse) {
         if (!currentTimingsToUse || !currentTimingsToUse.Fajr) {
             root.activePrayer = ""
@@ -337,6 +398,10 @@ PlasmoidItem {
                 }
             }
         }
+    }
+    function resetPreNotifications() {
+        root.preNotifiedPrayers = {};
+        console.log("Pre-notification tracking reset for new day");
     }
 
     function getYYYYMMDD(dateObj) { let year = dateObj.getFullYear(); let month = String(dateObj.getMonth() + 1).padStart(2, '0'); let day = String(dateObj.getDate()).padStart(2, '0'); return `${year}-${month}-${day}`; }
@@ -478,6 +543,7 @@ PlasmoidItem {
                     root.times = responseData.timings;
                     root.times.apiGregorianDate = responseData.date.gregorian.date;
                     root.rawHijriDataFromApi = responseData.date.hijri;
+                    resetPreNotifications();
                     processRawTimesAndApplyOffsets();
                     let offset = Plasmoid.configuration.hijriOffset || 0;
                     if (offset !== 0) {
