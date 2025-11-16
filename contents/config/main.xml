@@ -101,7 +101,7 @@
       <default>mezo122us2003@hotmail.com</default>
     </entry>
     <entry name="version" type="String">
-      <default>1.0.0</default>
+      <default>2.1.0</default>
     </entry>
     <entry name="citations" type="String">
       <default>Prayer times from AlAdhan API. Inspired by Prayer Times Widget.</default>
