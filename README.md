@@ -1,4 +1,4 @@
-    #Prayer Times--Quran and Adhan Player-- for KDE Plasma
+ #Prayer Times--Quran and Adhan Player-- for KDE Plasma
 
 A simple and customizable widget for KDE Plasma 6 to display daily Islamic prayer times.
 It features Hijri date, special Islamic occasion messages, configurable time offsets, Adhan sound and a Quran player.
@@ -29,7 +29,7 @@ Quran api from [Quran API](https://alquran.cloud/api).
 
 ## Configuration
 Right-click the widget and select "Configure..." to set your location, calculation preferences, and display options.
-You can click on the pause icon in the widget to pause when Quran is playing.
+You can click on the pause icon in the widget to pause and resume when Quran is playing.
 
 ---
 Developed by Mazen. *(Based on initial work by Hamza Nasher-Alneam, with thanks to @ammar-elmesaly and @MrGueest for their contributions to the original project).*
