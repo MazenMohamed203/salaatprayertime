@@ -21,7 +21,7 @@
         "Icon": "accessories-clock",
         "Id": "com.github.mazen.salatprayertime",
         "License": "GPL-3.0+",
-        "Name": "S Prayer Times(Quran and Adhan Player)",
+        "Name": "Salaat Prayer Times",
         "Name[ar]": "ساعة الصلاة",
         "Website": "https://github.com/mazenmohamed203/salaatprayertime"
     },
