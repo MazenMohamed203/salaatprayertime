@@ -8,6 +8,51 @@ import QtMultimedia
 
 KCM.SimpleKCM {
 
+    property var quranReciterNames: [
+        i18n("Minshawi (Murattal)"),
+        i18n("Alafasy"),
+        i18n("Husary (Murattal)"),
+        i18n("Abdurrahmaan As-Sudais"),
+        i18n("Maher Al Muaiqly"),
+        i18n("Abu Bakr Ash-Shaatree"),
+        i18n("Abdullah Basfar"),
+        i18n("Abdulbasit (Murattal)"),
+        i18n("Hudhaify"),
+        i18n("Muhammad Jibreel"),
+        i18n("Husary (Mujawwad)"),
+        i18n("Minshawi (Mujawwad)")
+    ]
+
+    property var quranReciterIdentifiers: [
+        "ar.minshawi",
+        "ar.alafasy",
+        "ar.husary",
+        "ar.abdurrahmaansudais",
+        "ar.mahermuaiqly",
+        "ar.shaatree",
+        "ar.abdullahbasfar",
+        "ar.abdulbasitmurattal",
+        "ar.hudhaify",
+        "ar.muhammadjibreel",
+        "ar.husarymujawwad",
+        "ar.minshawimujawwad"
+    ]
+
+    property var quranReciterNames_ar: [
+        "المنشاوي (مرتل)",
+        "العفاسي",
+        "الحصري (مرتل)",
+        "عبد الرحمن السديس",
+        "ماهر المعيقلي",
+        "أبو بكر الشاطري",
+        "عبد الله بصفر",
+        "عبد الباسط (مرتل)",
+        "الحذيفي",
+        "محمد جبريل",
+        "الحصري (مجود)",
+        "المنشاوي (مجود)"
+    ]
+
     property alias cfg_city: cityField.text
     property alias cfg_country: countryField.text
     property alias cfg_notifications: notificationsCheckBox.checked
@@ -31,26 +76,20 @@ KCM.SimpleKCM {
     property alias cfg_adhanAudioPath: adhanAudioPathField.text
     property alias cfg_adhanPlaybackMode: adhanPlaybackModeComboBox.currentIndex
     property alias cfg_adhanVolume: adhanVolumeSlider.value
+    property alias cfg_playPreAdhanSound: preAdhanSoundCheck.checked
     property alias cfg_playAdhanForFajr: playAdhanForFajrCheckBox.checked
     property alias cfg_playAdhanForDhuhr: playAdhanForDhuhrCheckBox.checked
     property alias cfg_playAdhanForAsr: playAdhanForAsrCheckBox.checked
     property alias cfg_playAdhanForMaghrib: playAdhanForMaghribCheckBox.checked
     property alias cfg_playAdhanForIsha: playAdhanForIshaCheckBox.checked
+    property alias cfg_quranReciterIndex: quranReciterComboBox.currentIndex
 
-    // Default adhan file path
     property string defaultAdhanPath: {
-
         let widgetRootUrl = Qt.resolvedUrl("../../").toString()
-
-        // Construct the path to the audio file
         let audioFileUrl = widgetRootUrl + "contents/audio/Adhan.mp3"
-
-        console.log("Config - Widget root URL:", widgetRootUrl)
-        console.log("Config - Audio file URL:", audioFileUrl)
-
         return audioFileUrl
     }
-    // ——— Invisible playback/test machinery lives here ———
+
     MediaPlayer {
         id: testPlayer
         audioOutput: testAudioOutput
@@ -72,7 +111,6 @@ KCM.SimpleKCM {
         }
     }
 
-    // ——— File dialog for choosing adhan audio ———
     FileDialog {
         id: adhanFileDialog
         title: i18n("Select Adhan Audio File")
@@ -80,61 +118,35 @@ KCM.SimpleKCM {
         fileMode: FileDialog.OpenFile
 
         onAccepted: {
-            console.log("FileDialog accepted")
-
-            // Try multiple properties to get the selected file
             let selectedPath = ""
-
-            // Try the modern properties first
             if (typeof adhanFileDialog.selectedFile !== "undefined") {
                 selectedPath = adhanFileDialog.selectedFile.toString()
-                console.log("Using selectedFile:", selectedPath)
             } else if (typeof adhanFileDialog.fileUrl !== "undefined") {
                 selectedPath = adhanFileDialog.fileUrl.toString()
-                console.log("Using fileUrl:", selectedPath)
             } else if (typeof adhanFileDialog.currentFile !== "undefined") {
                 selectedPath = adhanFileDialog.currentFile.toString()
-                console.log("Using currentFile:", selectedPath)
             }
 
-            // Clean up the path
             if (selectedPath) {
-                // Remove file:// prefix if present
                 if (selectedPath.startsWith("file://")) {
                     selectedPath = selectedPath.substring(7)
                 }
-
-                // Update the UI and configuration
                 adhanAudioPathField.text = selectedPath
                 cfg_adhanAudioPath = selectedPath
-
-                console.log("Final selected path:", selectedPath)
-            } else {
-                console.error("Could not determine selected file path")
             }
-        }
-
-        onRejected: {
-            console.log("File selection cancelled")
         }
     }
 
-    // Initialize with default adhan if no custom path is set
     Component.onCompleted: {
-        console.log("Default adhan path:", defaultAdhanPath)
-
-        // Check if the default file exists and use it if no custom path is set
         if (!plasmoid.configuration.adhanAudioPath || plasmoid.configuration.adhanAudioPath === "") {
             adhanAudioPathField.text = defaultAdhanPath
             cfg_adhanAudioPath = defaultAdhanPath
-            console.log("Using default adhan file:", defaultAdhanPath)
         }
     }
 
     Kirigami.FormLayout {
         anchors.fill: parent
 
-        // — Location & Display —
         Kirigami.Separator {
             Kirigami.FormData.isSection: true
             Kirigami.FormData.label: i18n("Location & Display")
@@ -145,7 +157,6 @@ KCM.SimpleKCM {
             checked: plasmoid.configuration.useCoordinates || false
         }
 
-        // City/Country fields (only visible when not using coordinates)
         TextField {
             id: cityField
             Kirigami.FormData.label: i18n("City:")
@@ -163,7 +174,6 @@ KCM.SimpleKCM {
             enabled: !useCoordinatesCheckBox.checked
         }
 
-        // Coordinate fields (only visible when using coordinates)
         TextField {
             id: latitudeField
             Kirigami.FormData.label: i18n("Latitude:")
@@ -232,7 +242,7 @@ KCM.SimpleKCM {
                 i18n("Normal (Name/Time)"),
                 i18n("Side-by-Side Countdown"),
                 i18n("Toggle Every 18s"),
-                i18n("Horizontal (Name next to Time)")  // NEW OPTION
+                i18n("Horizontal (Name next to Time)")
             ]
             currentIndex: plasmoid.configuration.compactStyle || 0
             onCurrentIndexChanged: plasmoid.configuration.compactStyle = currentIndex
@@ -248,7 +258,6 @@ KCM.SimpleKCM {
             checked: plasmoid.configuration.notifications || false
         }
 
-        // — Date & Time Adjustments —
         Kirigami.Separator {
             Kirigami.FormData.isSection: true
             Kirigami.FormData.label: i18n("Date & Time Adjustments")
@@ -256,9 +265,15 @@ KCM.SimpleKCM {
         SpinBox{
             id: preNotificationSpinBox
             Kirigami.FormData.label: i18n("Pre-Adhan Notification (minutes)")
-            from: 0 // 0 means turned off
+            from: 0
             to: 60
-            value: plasmoid.configuration.preNotificationMinutes || 10 
+            value: plasmoid.configuration.preNotificationMinutes || 10
+        }
+        CheckBox {
+            id: preAdhanSoundCheck
+            text: i18n("Play sound for pre-Adhan reminder")
+            checked: cfg_playPreAdhanSound
+            onCheckedChanged: cfg_playPreAdhanSound = checked
         }
         SpinBox {
             id: hijriOffsetSpinBox
@@ -303,7 +318,18 @@ KCM.SimpleKCM {
             value: plasmoid.configuration.ishaOffsetMinutes || 0
         }
 
-        // — Adhan Audio Settings —
+        Kirigami.Separator {
+            Kirigami.FormData.isSection: true
+            Kirigami.FormData.label: i18n("Quran Player Settings")
+        }
+        ComboBox {
+            id: quranReciterComboBox
+            Kirigami.FormData.label: i18n("Quran Reciter:")
+            model: languageField.currentIndex === 1 ? quranReciterNames_ar : quranReciterNames
+            currentIndex: plasmoid.configuration.quranReciterIndex || 0
+            onCurrentIndexChanged: console.log("Selected reciter:", quranReciterIdentifiers[currentIndex])
+        }
+
         Kirigami.Separator {
             Kirigami.FormData.isSection: true
             Kirigami.FormData.label: i18n("Adhan Audio Settings")
@@ -343,7 +369,7 @@ KCM.SimpleKCM {
                 i18n("First 40 seconds only"),
                 i18n("First 17 seconds only")
             ]
-            currentIndex: plasmoid.configuration.adhanPlaybackMode || 4 // Default to "Full Adhan"
+            currentIndex: plasmoid.configuration.adhanPlaybackMode || 4
         }
         RowLayout {
             Kirigami.FormData.label: i18n("Volume:")
@@ -398,23 +424,18 @@ KCM.SimpleKCM {
                 testStopTimer.stop()
                 testPlayer.stop()
                 let audioPath = adhanAudioPathField.text || defaultAdhanPath
-
-                // Ensure proper URL format
                 let sourceUrl = audioPath
                 if (!sourceUrl.startsWith("file://") && !sourceUrl.startsWith("qrc:/")) {
                     sourceUrl = "file://" + sourceUrl
                 }
-
-                console.log("Test - Setting source to:", sourceUrl)
                 testPlayer.source = sourceUrl
                 testAudioOutput.volume = adhanVolumeSlider.value
                 testPlayer.play()
 
-                // Update this part to handle both 40-second and 10-second modes
                 if (adhanPlaybackModeComboBox.currentIndex === 2) {
-                    testStopTimer.start()  // 40 seconds
+                    testStopTimer.start()
                 } else if (adhanPlaybackModeComboBox.currentIndex === 3) {
-                    testStopTimer.interval = 17000  // 10 seconds
+                    testStopTimer.interval = 17000
                     testStopTimer.start()
                 }
             }
