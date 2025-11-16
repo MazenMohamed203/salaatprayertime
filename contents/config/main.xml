@@ -20,7 +20,7 @@
       <default></default>
     </entry>
     <entry name="hourFormat" type="Bool">
-      <default>false</default>
+      <default>true</default>
     </entry>
     <entry name="notifications" type="Bool">
       <default>true</default>
@@ -35,13 +35,17 @@
       <default>4</default>
     </entry>
     <entry name="compactStyle" type="Int">
-      <default>0</default>
+      <default>1</default>
     </entry>
     <entry name="hijriOffset" type="Int">
       <default>0</default>
     </entry>
     <entry name="preNotificationMinutes" type="Int">
       <default>10</default>
+    </entry>
+    <entry name="playPreAdhanSound" type="Bool">
+      <default>true</default>
+      <label>Play a sound for the pre-Adhan reminder notification.</label>
     </entry>
     <entry name="fajrOffsetMinutes" type="Int">
       <default>0</default>
@@ -61,18 +65,16 @@
     <entry name="ishaOffsetMinutes" type="Int">
       <default>0</default>
     </entry>
-    <!-- New Adhan Audio Settings -->
     <entry name="adhanAudioPath" type="String">
       <default></default>
     </entry>
     <entry name="adhanPlaybackMode" type="Int">
-      <default>0</default> <!-- 0: Off, 1: Full, 2: 40 seconds, 3: 17 seconds -->
-    </entry>
+      <default>3</default> </entry>
     <entry name="adhanVolume" type="Double">
-      <default>0.7</default>
+      <default>0.5</default>
     </entry>
     <entry name="playAdhanForFajr" type="Bool">
-    <default>true</default>
+      <default>true</default>
     </entry>
     <entry name="playAdhanForDhuhr" type="Bool">
       <default>true</default>
@@ -86,6 +88,10 @@
     <entry name="playAdhanForIsha" type="Bool">
       <default>true</default>
     </entry>
+
+    <entry name="quranReciterIndex" type="Int">
+      <default>0</default> </entry>
+
   </group>
   <group name="About">
     <entry name="author" type="String">
