@@ -10,8 +10,8 @@
         ],
         "BugReportUrl": "https://github.com/mazenmohamed203/salaatprayertime/issues",
         "Category": "Date and Time",
-        "Description": "Prayer times clock and Hijri date on your desktop",
-        "Description[ar]": "ساعة الصلاة على مكتبك",
+        "Description": "Prayer times clock, Quran player and Hijri date on your desktop",
+        "Description[ar]": "ساعة الصلاة و القرآن الكريم على مكتبك",
         "EnabledByDefault": true,
         "FormFactors": [
             "tablet",
@@ -21,7 +21,7 @@
         "Icon": "accessories-clock",
         "Id": "com.github.mazen.salatprayertime",
         "License": "GPL-3.0+",
-        "Name": "Salaat Prayer Time",
+        "Name": "S Prayer Times(Quran and Adhan Player)",
         "Name[ar]": "ساعة الصلاة",
         "Website": "https://github.com/mazenmohamed203/salaatprayertime"
     },
