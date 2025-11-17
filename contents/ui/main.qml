@@ -76,6 +76,13 @@ PlasmoidItem {
     property int currentHijriMonth: 0
     property int currentHijriYear: 0
 
+
+    // --- Adhan Restore Logic ---
+    property string storedQuranUrl: ""
+    property int storedQuranPos: 0
+    property bool storedWasPlayerA: true
+    property bool storedContinuousActive: false
+
     // --- Verse Data ---
     property string dailyVerseArabic: i18n("Loading...")
     property string dailyVerseTranslation: ""
@@ -236,13 +243,10 @@ PlasmoidItem {
         id: adhanStopTimer
         interval: 40000; repeat: false
         onTriggered: {
-            if (playerA.playbackState === MediaPlayer.PlayingState) playerA.stop()
-                if (playerB.playbackState === MediaPlayer.PlayingState) playerB.stop()
-                    if (root.isAdhanPlaying) root.isAdhanPlaying = false
-                        console.log("Adhan stopped after timeout")
+            console.log("Adhan stopped after timeout")
+            restoreAfterAdhan()
         }
     }
-
     Timer {
         id: retryTimer
         interval: 0
@@ -271,7 +275,6 @@ PlasmoidItem {
         }
     }
 
-    // --- OPTIMIZATION: Unified Track Finish Logic ---
     function onVerseFinished(nextPlayer) {
         if (root.continuousPlayActive) {
             var isSwitchingToBasmalah = false;
@@ -338,9 +341,10 @@ PlasmoidItem {
                 onVerseFinished(playerB)
             }
             else if (state === MediaPlayer.StoppedState && root.audioRetryCount === 0) {
-                adhanStopTimer.stop();
-                if (root.isAdhanPlaying) root.isAdhanPlaying = false;
+                if (root.isAdhanPlaying) {
+                    restoreAfterAdhan()
             }
+        }
         }
 
         onErrorOccurred: function(error, errorString) {
@@ -909,27 +913,43 @@ PlasmoidItem {
 
             if (!shouldPlay) return
 
-                if (playerA.playbackState === MediaPlayer.PlayingState) playerA.stop()
-                    if (playerB.playbackState === MediaPlayer.PlayingState) playerB.stop()
-                        adhanStopTimer.stop()
+                // =========================================================
+                // === 1. SAVE CURRENT QURAN STATE ===
+                // =========================================================
+                var activeP = root.isPlayerA_the_active_verse_player ? playerA : playerB
+                root.storedQuranUrl = activeP.source.toString()
+                root.storedQuranPos = activeP.position
+                root.storedWasPlayerA = root.isPlayerA_the_active_verse_player
+                root.storedContinuousActive = root.continuousPlayActive
 
-                        let sourceUrl = audioPath
-                        if (!sourceUrl.startsWith("file://") && !sourceUrl.startsWith("qrc:/")) {
-                            sourceUrl = "file://" + sourceUrl
-                        }
+                // =========================================================
+                // === 2. PREPARE FOR ADHAN ===
+                // =========================================================
 
-                        console.log("Playing Adhan:", sourceUrl)
-                        playerA.source = sourceUrl
-                        root.isAdhanPlaying = true
-                        playerA.play()
+                root.continuousPlayActive = false
+                playerA.stop()
+                playerB.stop()
 
-                        if (root.adhanPlaybackMode === 2) {
-                            adhanStopTimer.interval = 40000
-                            adhanStopTimer.start()
-                        } else if (root.adhanPlaybackMode === 3) {
-                            adhanStopTimer.interval = 17000
-                            adhanStopTimer.start()
-                        }
+                root.isRetrySeekPending = false
+                adhanStopTimer.stop()
+
+                let sourceUrl = audioPath
+                if (!sourceUrl.startsWith("file://") && !sourceUrl.startsWith("qrc:/")) {
+                    sourceUrl = "file://" + sourceUrl
+                }
+
+                console.log("Playing Adhan:", sourceUrl)
+                playerA.source = sourceUrl
+                root.isAdhanPlaying = true
+                playerA.play()
+
+                if (root.adhanPlaybackMode === 2) {
+                    adhanStopTimer.interval = 40000
+                    adhanStopTimer.start()
+                } else if (root.adhanPlaybackMode === 3) {
+                    adhanStopTimer.interval = 17000
+                    adhanStopTimer.start()
+                }
     }
 
     function checkPreNotifications(currentTimingsToUse) {
@@ -1062,6 +1082,32 @@ PlasmoidItem {
             root.nextPrayerDateTime = null
         }
     }
+
+    function restoreAfterAdhan() {
+        adhanStopTimer.stop()
+
+        if (root.isAdhanPlaying) {
+            console.log("Adhan finished. Auto-resuming Quran...")
+
+            playerA.stop()
+            root.isAdhanPlaying = false
+
+            root.isPlayerA_the_active_verse_player = root.storedWasPlayerA
+            root.continuousPlayActive = root.storedContinuousActive
+
+            var quranPlayer = root.storedWasPlayerA ? playerA : playerB
+
+            if (root.storedWasPlayerA) {
+                quranPlayer.source = ""
+                quranPlayer.source = root.storedQuranUrl
+            }
+
+            quranPlayer.position = root.storedQuranPos
+
+            quranPlayer.play()
+        }
+    }
+
 
     function processRawTimesAndApplyOffsets() {
         const defaultTimesStructure = { Fajr: "--:--", Sunrise: "--:--", Dhuhr: "--:--", Asr: "--:--", Maghrib: "--:--", Isha: "--:--", apiGregorianDate: getFormattedDate(new Date()) }
