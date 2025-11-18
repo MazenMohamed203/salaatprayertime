@@ -63,6 +63,12 @@ PlasmoidItem {
     property int lastKnownPosA: 0
     property int lastKnownPosB: 0
 
+    // --- Adhan Restore Logic ---
+    property string storedQuranUrl: ""
+    property int storedQuranPos: 0
+    property bool storedWasPlayerA: true
+    property bool storedContinuousActive: false
+
     property var nextPrayerDateTime: null
     property string timeUntilNextPrayer: ""
     property string nextPrayerNameForDisplay: ""
@@ -75,13 +81,6 @@ PlasmoidItem {
     property int currentHijriDay: 0
     property int currentHijriMonth: 0
     property int currentHijriYear: 0
-
-
-    // --- Adhan Restore Logic ---
-    property string storedQuranUrl: ""
-    property int storedQuranPos: 0
-    property bool storedWasPlayerA: true
-    property bool storedContinuousActive: false
 
     // --- Verse Data ---
     property string dailyVerseArabic: i18n("Loading...")
@@ -194,7 +193,6 @@ PlasmoidItem {
         catch (e) { return {} }
     }
 
-    // OPTIMIZATION: 0ms startup
     Timer {
         id: startupTimer
         interval: 0; repeat: false
@@ -247,9 +245,11 @@ PlasmoidItem {
             restoreAfterAdhan()
         }
     }
+
+    // OPTIMIZATION: 10ms interval for Turbo-Seek
     Timer {
         id: retryTimer
-        interval: 0
+        interval: 10
         repeat: false
         onTriggered: {
             if (root.playerToRetry) {
@@ -261,7 +261,7 @@ PlasmoidItem {
                 root.playerToRetry.source = currentUrl;
                 root.isRetrySeekPending = true;
 
-                // Turbo: Set Position BEFORE Play
+                // Turbo: Set Position BEFORE Play to force Range Request
                 root.playerToRetry.position = resumePos;
                 root.playerToRetry.play();
             }
@@ -319,7 +319,6 @@ PlasmoidItem {
 
         onPlaybackStateChanged: function(state) {
             if (state === MediaPlayer.PlayingState) {
-                // Verify Resume Check
                 if (root.isRetrySeekPending && root.playerToRetry === playerA) {
                     var resumePos = Math.max(0, root.retryResumePosition);
                     if (Math.abs(playerA.position - resumePos) > 2000) {
@@ -343,8 +342,8 @@ PlasmoidItem {
             else if (state === MediaPlayer.StoppedState && root.audioRetryCount === 0) {
                 if (root.isAdhanPlaying) {
                     restoreAfterAdhan()
+                }
             }
-        }
         }
 
         onErrorOccurred: function(error, errorString) {
@@ -425,7 +424,6 @@ PlasmoidItem {
 
         if (root.playerToRetry) root.playerToRetry.stop();
 
-        // Force next verse
         if (root.continuousPlayActive) {
             root.isRetrySeekPending = false;
             if (root.isPlayerA_the_active_verse_player) onVerseFinished(playerB);
@@ -512,7 +510,6 @@ PlasmoidItem {
                 anchors.horizontalCenter: parent.horizontalCenter
             }
 
-            // FIX: Subtract padding from width so it doesn't overflow
             PlasmaComponents.MenuSeparator {
                 width: parent.width - (parent.padding * 2)
                 topPadding: Kirigami.Units.moderateSpacing
@@ -522,7 +519,6 @@ PlasmoidItem {
             Repeater {
                 model: ["Fajr", "Sunrise", "Dhuhr", "Asr", "Maghrib", "Isha"]
                 delegate: Rectangle {
-                    // FIX: Subtract padding from width
                     width: parent.width - (Kirigami.Units.largeSpacing * 2)
                     height: Kirigami.Units.gridUnit * 2.0
                     radius: 8
@@ -547,7 +543,6 @@ PlasmoidItem {
                 }
             }
 
-            // FIX: Subtract padding from width
             PlasmaComponents.MenuSeparator {
                 width: parent.width - (parent.padding * 2)
                 topPadding: Kirigami.Units.smallSpacing
@@ -556,7 +551,6 @@ PlasmoidItem {
 
             Button {
                 anchors.horizontalCenter: parent.horizontalCenter
-                // FIX: Subtract padding from width
                 width: parent.width - (parent.padding * 2)
                 text: root.languageIndex === 1 ? "القرآن الكريم" : "Quran"
                 onClicked: {
@@ -843,7 +837,7 @@ PlasmoidItem {
                             root.currentSurahNumber = arabicData.surah.number
                             root.currentAyahNumber = arabicData.numberInSurah
 
-                            let finalUrl = audioData.audio
+                            let finalUrl = audioData.audio.replace("https:", "http:")
 
                             root.continuousPlayActive = true
                             playerA.source = finalUrl
@@ -913,18 +907,11 @@ PlasmoidItem {
 
             if (!shouldPlay) return
 
-                // =========================================================
-                // === 1. SAVE CURRENT QURAN STATE ===
-                // =========================================================
                 var activeP = root.isPlayerA_the_active_verse_player ? playerA : playerB
                 root.storedQuranUrl = activeP.source.toString()
                 root.storedQuranPos = activeP.position
                 root.storedWasPlayerA = root.isPlayerA_the_active_verse_player
                 root.storedContinuousActive = root.continuousPlayActive
-
-                // =========================================================
-                // === 2. PREPARE FOR ADHAN ===
-                // =========================================================
 
                 root.continuousPlayActive = false
                 playerA.stop()
@@ -950,6 +937,29 @@ PlasmoidItem {
                     adhanStopTimer.interval = 17000
                     adhanStopTimer.start()
                 }
+    }
+
+    function restoreAfterAdhan() {
+        adhanStopTimer.stop()
+
+        if (root.isAdhanPlaying) {
+            console.log("Adhan finished. Auto-resuming Quran...")
+            playerA.stop()
+            root.isAdhanPlaying = false
+
+            root.isPlayerA_the_active_verse_player = root.storedWasPlayerA
+            root.continuousPlayActive = root.storedContinuousActive
+
+            var quranPlayer = root.storedWasPlayerA ? playerA : playerB
+
+            if (root.storedWasPlayerA) {
+                quranPlayer.source = ""
+                quranPlayer.source = root.storedQuranUrl
+            }
+
+            quranPlayer.position = root.storedQuranPos
+            quranPlayer.play()
+        }
     }
 
     function checkPreNotifications(currentTimingsToUse) {
@@ -978,9 +988,12 @@ PlasmoidItem {
                                     var notification = notificationComponent.createObject(root)
                                     notification.title = i18n("%1 in %2 minutes", getPrayerName(root.languageIndex, prayerName), minutesUntil)
                                     notification.text = i18n("Prayer time reminder")
+                                    notification.eventId = "notification"
+
                                     if (root.playPreAdhanSound) {
                                         notification.hints = { "sound-name": "message-new-instant" }
                                     }
+
                                     notification.sendEvent()
                                     root.preNotifiedPrayers[notificationKey] = true
                                 }
@@ -1082,32 +1095,6 @@ PlasmoidItem {
             root.nextPrayerDateTime = null
         }
     }
-
-    function restoreAfterAdhan() {
-        adhanStopTimer.stop()
-
-        if (root.isAdhanPlaying) {
-            console.log("Adhan finished. Auto-resuming Quran...")
-
-            playerA.stop()
-            root.isAdhanPlaying = false
-
-            root.isPlayerA_the_active_verse_player = root.storedWasPlayerA
-            root.continuousPlayActive = root.storedContinuousActive
-
-            var quranPlayer = root.storedWasPlayerA ? playerA : playerB
-
-            if (root.storedWasPlayerA) {
-                quranPlayer.source = ""
-                quranPlayer.source = root.storedQuranUrl
-            }
-
-            quranPlayer.position = root.storedQuranPos
-
-            quranPlayer.play()
-        }
-    }
-
 
     function processRawTimesAndApplyOffsets() {
         const defaultTimesStructure = { Fajr: "--:--", Sunrise: "--:--", Dhuhr: "--:--", Asr: "--:--", Maghrib: "--:--", Isha: "--:--", apiGregorianDate: getFormattedDate(new Date()) }
@@ -1403,7 +1390,8 @@ PlasmoidItem {
                                 root.nextQueuedSurahNumber = arabicData.surah.number
                                 root.nextQueuedAyahNumber = arabicData.numberInSurah
 
-                                let finalUrl = audioData.audio
+                                // OPTIMIZATION: Use HTTP to reduce TLS overhead and connection time
+                                let finalUrl = audioData.audio.replace("https:", "http:")
 
                                 if (audioData.numberInSurah === 1 && audioData.surah.number !== 1 && audioData.surah.number !== 9) {
                                     root.storedVerseUrlForAfterBasmalah = finalUrl;
