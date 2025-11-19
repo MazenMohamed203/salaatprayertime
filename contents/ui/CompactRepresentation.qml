@@ -11,7 +11,7 @@ Item {
 
     // Smart width calculation
     implicitWidth: {
-        let baseWidth = (compactStyle === 3) ? Kirigami.Units.gridUnit * 9 : Kirigami.Units.gridUnit * 7
+        let baseWidth = (compactStyle === 3) ? Kirigami.Units.gridUnit * 9 : Kirigami.Units.gridUnit * 8
         return (mediaButton.visible) ? baseWidth + Kirigami.Units.iconSizes.small : baseWidth
     }
 
@@ -30,8 +30,6 @@ Item {
     // --- Internal Properties ---
     property bool isPrePrayerAlertActive: false
     property bool toggleViewIsPrayerTime: true
-    readonly property int maxCompactLabelPixelSize: Kirigami.Theme.defaultFont.pixelSize
-    readonly property int minCompactLabelPixelSize: 7
 
     // --- Helper functions ---
     function getRemainingText() { return (languageIndex === 1) ? "متبقي" : i18n("After"); }
@@ -51,7 +49,7 @@ Item {
         return dateObj;
     }
 
-    // --- Pre-Prayer Alert Timer ---
+    // --- Timers ---
     Timer {
         id: prePrayerAlertTimer
         interval: 1000; running: true; repeat: true
@@ -72,7 +70,6 @@ Item {
         }
     }
 
-    // --- Toggle Timers ---
     Timer {
         id: toggleTimer
         interval: 18000; running: root.compactStyle === 2; repeat: true
@@ -114,13 +111,12 @@ Item {
         }
     }
 
-    // --- MouseArea (Detects Hover) ---
     MouseArea {
         id: mouseArea
         property bool wasExpanded: false
         anchors.fill: parent
         hoverEnabled: true
-        z: 0 // Ensure it is behind the button (which will be z: 99)
+        z: 0
         onPressed: wasExpanded = root.plasmoidItem ? root.plasmoidItem.expanded : false
         onClicked: mouse => {
             if (root.plasmoidItem) root.plasmoidItem.expanded = !wasExpanded
@@ -130,96 +126,184 @@ Item {
     // --- MAIN LAYOUT ---
     RowLayout {
         anchors.fill: parent
-        spacing: Kirigami.Units.smallSpacing
+        spacing: 0
 
-        // 1. The Text/Countdown Info
-        StackLayout {
-            id: layoutSwitcher
+        // Left spacer
+        Item {
             Layout.fillWidth: true
-            Layout.fillHeight: true
-            currentIndex: {
-                if (root.compactStyle === 1) return 1;
-                if (root.compactStyle === 3) return 2;
-                return 0;
-            }
-
-            // Item 0: Normal & Toggle
-            Label {
-                horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter
-                fontSizeMode: Text.Fit
-                color: root.isPrePrayerAlertActive ? Qt.rgba(Kirigami.Theme.textColor.r, Kirigami.Theme.textColor.g, Kirigami.Theme.textColor.b, 0.9) : Kirigami.Theme.textColor
-                font.weight: root.isPrePrayerAlertActive ? Font.Medium : Font.Normal
-                text: (root.compactStyle === 2 && !root.toggleViewIsPrayerTime) ?
-                (getTimeLeftText() + "\n" + root.countdownText.substring(0, 5)) :
-                (root.nextPrayerName + "\n" + root.nextPrayerTime)
-            }
-
-            // Item 1: Countdown Side-by-Side
-            RowLayout {
-                spacing: Kirigami.Units.largeSpacing
-                Label {
-                    Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
-                    horizontalAlignment: Text.AlignHCenter
-                    color: root.isPrePrayerAlertActive ? Qt.rgba(Kirigami.Theme.textColor.r, Kirigami.Theme.textColor.g, Kirigami.Theme.textColor.b, 0.9) : Kirigami.Theme.textColor
-                    text: root.nextPrayerName + "\n" + root.nextPrayerTime
-                }
-                Rectangle {
-                    width: 1; Layout.fillHeight: true; Layout.topMargin: 4; Layout.bottomMargin: 4
-                    color: Kirigami.Theme.textColor; opacity: 0.4
-                }
-                Label {
-                    Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
-                    horizontalAlignment: Text.AlignHCenter
-                    color: root.isPrePrayerAlertActive ? Qt.rgba(Kirigami.Theme.textColor.r, Kirigami.Theme.textColor.g, Kirigami.Theme.textColor.b, 0.9) : Kirigami.Theme.textColor
-                    text: getRemainingText() + "\n" + root.countdownText.substring(0, 5)
-                }
-            }
-
-            // Item 2: Horizontal (Merged Text)
-            Label {
-                Layout.fillWidth: true
-                Layout.alignment: Qt.AlignVCenter
-                horizontalAlignment: Text.AlignHCenter
-                verticalAlignment: Text.AlignVCenter
-                color: root.isPrePrayerAlertActive ? Qt.rgba(Kirigami.Theme.textColor.r, Kirigami.Theme.textColor.g, Kirigami.Theme.textColor.b, 0.9) : Kirigami.Theme.textColor
-                font.weight: root.isPrePrayerAlertActive ? Font.Medium : Font.Normal
-                font.pointSize: Kirigami.Theme.defaultFont.pointSize
-                text: root.nextPrayerName + "  " + root.nextPrayerTime
-            }
         }
 
-        // 2. The Play/Pause Button
-        ToolButton {
-            id: mediaButton
-            Layout.preferredWidth: Kirigami.Units.iconSizes.small
-            Layout.preferredHeight: Kirigami.Units.iconSizes.small
+        // Content wrapper - keeps text and button together
+        RowLayout {
+            spacing: 0
             Layout.alignment: Qt.AlignVCenter
-            Layout.rightMargin: Kirigami.Units.smallSpacing
 
-            flat: true
-            hoverEnabled: true // IMPORTANT: Allows the button to detect hover too
+            // 1. The Text/Countdown Info
+            StackLayout {
+                id: layoutSwitcher
+                Layout.fillHeight: true
+                Layout.alignment: Qt.AlignVCenter
+                Layout.preferredWidth: implicitWidth
 
-            // Show if:
-            // 1. Audio is Playing
-            // 2. OR Mouse is over the general area (mouseArea)
-            // 3. OR Mouse is over this button itself (mediaButton.hovered)
-            visible: (root.plasmoidItem && root.plasmoidItem.isAnyAudioPlaying) || mouseArea.containsMouse || hovered
+                currentIndex: {
+                    if (root.compactStyle === 1) return 1;
+                    if (root.compactStyle === 3) return 2;
+                    return 0;
+                }
 
-            icon.name: (root.plasmoidItem && root.plasmoidItem.isAnyAudioPlaying) ? "media-playback-pause" : "media-playback-start"
+                // Item 0: Normal & Toggle
+                ColumnLayout {
+                    spacing: root.height < 45 ? -1 : -3
+                    Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
+                    Layout.preferredWidth: implicitWidth
 
-            onClicked: {
-                if (root.plasmoidItem) {
-                    root.plasmoidItem.togglePlayback()
+                    Label {
+                        Layout.alignment: Qt.AlignHCenter
+                        renderType: Text.NativeRendering
+                        font.pixelSize: Math.max(9, root.height * 0.35)
+                        color: root.isPrePrayerAlertActive ? Qt.rgba(Kirigami.Theme.textColor.r, Kirigami.Theme.textColor.g, Kirigami.Theme.textColor.b, 0.9) : Kirigami.Theme.textColor
+                        font.weight: root.isPrePrayerAlertActive ? Font.Medium : Font.Normal
+                        text: (root.compactStyle === 2 && !root.toggleViewIsPrayerTime) ? getTimeLeftText() : root.nextPrayerName
+                        leftPadding: 0
+                        rightPadding: 0
+                        topPadding: 0
+                        bottomPadding: 0
+                    }
+                    Label {
+                        Layout.alignment: Qt.AlignHCenter
+                        renderType: Text.NativeRendering
+                        font.pixelSize: Math.max(9, root.height * 0.35)
+                        color: root.isPrePrayerAlertActive ? Qt.rgba(Kirigami.Theme.textColor.r, Kirigami.Theme.textColor.g, Kirigami.Theme.textColor.b, 0.9) : Kirigami.Theme.textColor
+                        font.weight: root.isPrePrayerAlertActive ? Font.Medium : Font.Normal
+                        text: (root.compactStyle === 2 && !root.toggleViewIsPrayerTime) ? root.countdownText.substring(0, 5) : root.nextPrayerTime
+                        leftPadding: 0
+                        rightPadding: 0
+                        topPadding: 0
+                        bottomPadding: 0
+                    }
+                }
+
+                // Item 1: Countdown Side-by-Side
+                RowLayout {
+                    spacing: Kirigami.Units.smallSpacing
+                    Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
+                    Layout.preferredWidth: implicitWidth
+
+                    ColumnLayout {
+                        spacing: root.height < 45 ? -1 : -3
+                        Layout.alignment: Qt.AlignVCenter
+                        Label {
+                            Layout.alignment: Qt.AlignHCenter
+                            text: root.nextPrayerName
+                            renderType: Text.NativeRendering
+                            font.pixelSize: Math.max(9, root.height * 0.35)
+                            color: root.isPrePrayerAlertActive ? Qt.rgba(Kirigami.Theme.textColor.r, Kirigami.Theme.textColor.g, Kirigami.Theme.textColor.b, 0.9) : Kirigami.Theme.textColor
+                            leftPadding: 0
+                            rightPadding: 0
+                            topPadding: 0
+                            bottomPadding: 0
+                        }
+                        Label {
+                            Layout.alignment: Qt.AlignHCenter
+                            text: root.nextPrayerTime
+                            renderType: Text.NativeRendering
+                            font.pixelSize: Math.max(9, root.height * 0.35)
+                            color: root.isPrePrayerAlertActive ? Qt.rgba(Kirigami.Theme.textColor.r, Kirigami.Theme.textColor.g, Kirigami.Theme.textColor.b, 0.9) : Kirigami.Theme.textColor
+                            leftPadding: 0
+                            rightPadding: 0
+                            topPadding: 0
+                            bottomPadding: 0
+                        }
+                    }
+
+                    Rectangle {
+                        width: 1
+                        Layout.fillHeight: true
+                        Layout.topMargin: 2
+                        Layout.bottomMargin: 2
+                        color: Kirigami.Theme.textColor
+                        opacity: 0.4
+                    }
+
+                    ColumnLayout {
+                        spacing: root.height < 45 ? -1 : -3
+                        Layout.alignment: Qt.AlignVCenter
+                        Label {
+                            Layout.alignment: Qt.AlignHCenter
+                            text: getRemainingText()
+                            renderType: Text.NativeRendering
+                            font.pixelSize: Math.max(9, root.height * 0.35)
+                            color: root.isPrePrayerAlertActive ? Qt.rgba(Kirigami.Theme.textColor.r, Kirigami.Theme.textColor.g, Kirigami.Theme.textColor.b, 0.9) : Kirigami.Theme.textColor
+                            leftPadding: 0
+                            rightPadding: 0
+                            topPadding: 0
+                            bottomPadding: 0
+                        }
+                        Label {
+                            Layout.alignment: Qt.AlignHCenter
+                            text: root.countdownText.substring(0, 5)
+                            renderType: Text.NativeRendering
+                            font.pixelSize: Math.max(9, root.height * 0.35)
+                            color: root.isPrePrayerAlertActive ? Qt.rgba(Kirigami.Theme.textColor.r, Kirigami.Theme.textColor.g, Kirigami.Theme.textColor.b, 0.9) : Kirigami.Theme.textColor
+                            leftPadding: 0
+                            rightPadding: 0
+                            topPadding: 0
+                            bottomPadding: 0
+                        }
+                    }
+                }
+
+                // Item 2: Horizontal
+                Label {
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
+                    horizontalAlignment: Text.AlignHCenter
+                    verticalAlignment: Text.AlignVCenter
+
+                    fontSizeMode: Text.Fit
+                    minimumPixelSize: 8
+                    font.pixelSize: 72
+                    wrapMode: Text.NoWrap
+                    renderType: Text.NativeRendering
+
+                    color: root.isPrePrayerAlertActive ? Qt.rgba(Kirigami.Theme.textColor.r, Kirigami.Theme.textColor.g, Kirigami.Theme.textColor.b, 0.9) : Kirigami.Theme.textColor
+                    font.weight: root.isPrePrayerAlertActive ? Font.Medium : Font.Normal
+                    text: root.nextPrayerName + "  " + root.nextPrayerTime
                 }
             }
 
-            z: 99
-        }
-    }
+            // 2. The Play/Pause Button
+            ToolButton {
+                id: mediaButton
+                Layout.preferredWidth: Kirigami.Units.iconSizes.small
+                Layout.preferredHeight: Kirigami.Units.iconSizes.small
+                Layout.alignment: Qt.AlignVCenter
+                Layout.rightMargin: Kirigami.Units.smallSpacing
 
-    // --- Tooltip ---
-    ToolTip {
-        visible: mouseArea.containsMouse && root.isPrePrayerAlertActive
-        text: (root.languageIndex === 1) ? "تنبيه: باقي 5 دقائق على " + root.nextPrayerName : "Alert: " + root.nextPrayerName + " in 5 minutes"
+                flat: true
+                hoverEnabled: true
+
+                visible: (root.plasmoidItem && root.plasmoidItem.isAnyAudioPlaying) || mouseArea.containsMouse || hovered
+
+                icon.name: (root.plasmoidItem && root.plasmoidItem.isAnyAudioPlaying) ? "media-playback-pause" : "media-playback-start"
+
+                onClicked: {
+                    if (root.plasmoidItem) {
+                        root.plasmoidItem.togglePlayback()
+                    }
+                }
+                z: 99
+            }
+
+            // Spacer to center content
+            Item {
+                Layout.fillWidth: true
+            }
+        }
+
+        ToolTip {
+            visible: mouseArea.containsMouse && root.isPrePrayerAlertActive
+            text: (root.languageIndex === 1) ? "تنبيه: باقي 5 دقائق على " + root.nextPrayerName : "Alert: " + root.nextPrayerName + " in 5 minutes"
+        }
     }
 }
