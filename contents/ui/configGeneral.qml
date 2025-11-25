@@ -1,444 +1,344 @@
 import QtQuick
 import QtQuick.Controls
-import QtQuick.Dialogs
 import QtQuick.Layouts
+import QtQuick.Dialogs
+import QtMultimedia
 import org.kde.kirigami as Kirigami
 import org.kde.kcmutils as KCM
-import QtMultimedia
 
 KCM.SimpleKCM {
+    id: root
 
-    property var quranReciterNames: [
-        i18n("Minshawi (Murattal)"),
-        i18n("Alafasy"),
-        i18n("Husary (Murattal)"),
-        i18n("Abdurrahmaan As-Sudais"),
-        i18n("Maher Al Muaiqly"),
-        i18n("Abu Bakr Ash-Shaatree"),
-        i18n("Abdullah Basfar"),
-        i18n("Abdulbasit (Murattal)"),
-        i18n("Hudhaify"),
-        i18n("Muhammad Jibreel"),
-        i18n("Husary (Mujawwad)"),
-        i18n("Minshawi (Mujawwad)")
-    ]
+    // ============================================================
+    // SAFE STORAGE FOR RECITER INDEX
+    // This prevents the ComboBox from resetting the setting to 0
+    // when the language (and thus the model) changes.
+    // ============================================================
+    property int internalReciterIndex: 0
 
-    property var quranReciterIdentifiers: [
-        "ar.minshawi",
-        "ar.alafasy",
-        "ar.husary",
-        "ar.abdurrahmaansudais",
-        "ar.mahermuaiqly",
-        "ar.shaatree",
-        "ar.abdullahbasfar",
-        "ar.abdulbasitmurattal",
-        "ar.hudhaify",
-        "ar.muhammadjibreel",
-        "ar.husarymujawwad",
-        "ar.minshawimujawwad"
-    ]
+    // ============================================================
+    // PROPERTY ALIASES
+    // ============================================================
 
-    property var quranReciterNames_ar: [
-        "المنشاوي (مرتل)",
-        "العفاسي",
-        "الحصري (مرتل)",
-        "عبد الرحمن السديس",
-        "ماهر المعيقلي",
-        "أبو بكر الشاطري",
-        "عبد الله بصفر",
-        "عبد الباسط (مرتل)",
-        "الحذيفي",
-        "محمد جبريل",
-        "الحصري (مجود)",
-        "المنشاوي (مجود)"
-    ]
+    // Map the XML setting to our safe internal property
+    property alias cfg_quranReciterIndex: root.internalReciterIndex
 
+    // Location
+    property alias cfg_method: methodCombo.currentIndex
+    property alias cfg_school: schoolCombo.currentIndex
     property alias cfg_city: cityField.text
     property alias cfg_country: countryField.text
-    property alias cfg_notifications: notificationsCheckBox.checked
-    property alias cfg_hourFormat: hourFormatCheckBox.checked
-    property alias cfg_method: methodField.currentIndex
-    property alias cfg_school: schoolField.currentIndex
-    property alias cfg_languageIndex: languageField.currentIndex
-    property alias cfg_compactStyle: compactStyleComboBox.currentIndex
-    property alias cfg_preNotificationMinutes: preNotificationSpinBox.value
-    property alias cfg_hijriOffset: hijriOffsetSpinBox.value
-    property alias cfg_fajrOffsetMinutes: fajrOffsetSpin.value
-    property alias cfg_sunriseOffsetMinutes: sunriseOffsetSpin.value
-    property alias cfg_dhuhrOffsetMinutes: dhuhrOffsetSpin.value
-    property alias cfg_asrOffsetMinutes: asrOffsetSpin.value
-    property alias cfg_maghribOffsetMinutes: maghribOffsetSpin.value
-    property alias cfg_ishaOffsetMinutes: ishaOffsetSpin.value
-    property alias cfg_useCoordinates: useCoordinatesCheckBox.checked
-    property alias cfg_latitude: latitudeField.text
-    property alias cfg_longitude: longitudeField.text
+    property alias cfg_latitude: latField.text
+    property alias cfg_longitude: longField.text
+    property alias cfg_useCoordinates: useCoordsCheck.checked
 
-    property alias cfg_adhanAudioPath: adhanAudioPathField.text
-    property alias cfg_adhanPlaybackMode: adhanPlaybackModeComboBox.currentIndex
-    property alias cfg_adhanVolume: adhanVolumeSlider.value
+    // General
+    property alias cfg_compactStyle: compactStyleCombo.currentIndex
+    property alias cfg_hourFormat: hourFormatCheck.checked
+    property alias cfg_languageIndex: languageCombo.currentIndex
+    property alias cfg_notifications: notificationsCheck.checked
+    property alias cfg_preNotificationMinutes: preNotificationSpinBox.value
     property alias cfg_playPreAdhanSound: preAdhanSoundCheck.checked
-    property alias cfg_playAdhanForFajr: playAdhanForFajrCheckBox.checked
-    property alias cfg_playAdhanForDhuhr: playAdhanForDhuhrCheckBox.checked
-    property alias cfg_playAdhanForAsr: playAdhanForAsrCheckBox.checked
-    property alias cfg_playAdhanForMaghrib: playAdhanForMaghribCheckBox.checked
-    property alias cfg_playAdhanForIsha: playAdhanForIshaCheckBox.checked
-    property alias cfg_quranReciterIndex: quranReciterComboBox.currentIndex
+
+    // Audio
+    property alias cfg_adhanAudioPath: adhanPathField.text
+    property alias cfg_adhanPlaybackMode: adhanModeCombo.currentIndex
+    property alias cfg_adhanVolume: adhanVolumeSlider.value
+
+    // Adhan Toggles
+    property alias cfg_playAdhanForFajr: playFajrCheck.checked
+    property alias cfg_playAdhanForDhuhr: playDhuhrCheck.checked
+    property alias cfg_playAdhanForAsr: playAsrCheck.checked
+    property alias cfg_playAdhanForMaghrib: playMaghribCheck.checked
+    property alias cfg_playAdhanForIsha: playIshaCheck.checked
+
+    // Offsets
+    property alias cfg_fajrOffsetMinutes: fajrOffset.value
+    property alias cfg_sunriseOffsetMinutes: sunriseOffset.value
+    property alias cfg_dhuhrOffsetMinutes: dhuhrOffset.value
+    property alias cfg_asrOffsetMinutes: asrOffset.value
+    property alias cfg_maghribOffsetMinutes: maghribOffset.value
+    property alias cfg_ishaOffsetMinutes: ishaOffset.value
+    property alias cfg_hijriOffset: hijriOffsetSpin.value
+
+    // ============================================================
+    // INTERNAL DATA & LOGIC
+    // ============================================================
+
+    property var reciterNamesEn: [
+        "Minshawi (Murattal)", "Alafasy", "Husary (Murattal)",
+        "Abdurrahmaan As-Sudais", "Maher Al Muaiqly", "Abu Bakr Ash-Shaatree",
+        "Abdullah Basfar", "Abdulbasit (Murattal)", "Hudhaify", "Muhammad Jibreel",
+        "Husary (Mujawwad)", "Minshawi (Mujawwad)"
+    ]
+
+    property var reciterNamesAr: [
+        "المنشاوي (مرتل)", "العفاسي", "الحصري (مرتل)",
+        "عبد الرحمن السديس", "ماهر المعيقلي", "أبو بكر الشاطري",
+        "عبد الله بصفر", "عبد الباسط (مرتل)", "الحذيفي", "محمد جبريل",
+        "الحصري (مجود)", "المنشاوي (مجود)"
+    ]
 
     property string defaultAdhanPath: {
-        let widgetRootUrl = Qt.resolvedUrl("../../").toString()
-        let audioFileUrl = widgetRootUrl + "contents/audio/Adhan.mp3"
-        return audioFileUrl
+        return Qt.resolvedUrl("../../contents/audio/Adhan.mp3").toString()
     }
 
+    // Test Player
     MediaPlayer {
-        id: testPlayer
-        audioOutput: testAudioOutput
-        onErrorOccurred: console.log("KCM Test Player Error:", error, errorString)
+        id: previewPlayer
+        audioOutput: AudioOutput { volume: adhanVolumeSlider.value }
         onPlaybackStateChanged: {
             if (playbackState === MediaPlayer.StoppedState) {
-                testStopTimer.stop()
+                testAdhanStopTimer.stop()
             }
         }
     }
-    AudioOutput { id: testAudioOutput }
+
     Timer {
-        id: testStopTimer
-        interval: 40000; repeat: false
+        id: testAdhanStopTimer
+        repeat: false
         onTriggered: {
-            if (testPlayer.playbackState === MediaPlayer.PlayingState) {
-                testPlayer.stop()
-            }
+            console.log("Test Adhan stopped by timer")
+            previewPlayer.stop()
         }
     }
 
+    // File Dialog
     FileDialog {
-        id: adhanFileDialog
+        id: fileDialog
         title: i18n("Select Adhan Audio File")
-        nameFilters: ["Audio files (*.mp3 *.wav *.m4a *.ogg *.flac)", "All files (*)"]
-        fileMode: FileDialog.OpenFile
-
+        nameFilters: [ "Audio files (*.mp3 *.wav *.ogg *.m4a *.flac)", "All files (*)" ]
         onAccepted: {
-            let selectedPath = ""
-            if (typeof adhanFileDialog.selectedFile !== "undefined") {
-                selectedPath = adhanFileDialog.selectedFile.toString()
-            } else if (typeof adhanFileDialog.fileUrl !== "undefined") {
-                selectedPath = adhanFileDialog.fileUrl.toString()
-            } else if (typeof adhanFileDialog.currentFile !== "undefined") {
-                selectedPath = adhanFileDialog.currentFile.toString()
-            }
-
-            if (selectedPath) {
-                if (selectedPath.startsWith("file://")) {
-                    selectedPath = selectedPath.substring(7)
-                }
-                adhanAudioPathField.text = selectedPath
-                cfg_adhanAudioPath = selectedPath
-            }
+            let path = selectedFile.toString()
+            if (path.startsWith("file://")) path = path.substring(7)
+                adhanPathField.text = path
         }
     }
 
     Component.onCompleted: {
         if (!plasmoid.configuration.adhanAudioPath || plasmoid.configuration.adhanAudioPath === "") {
-            adhanAudioPathField.text = defaultAdhanPath
-            cfg_adhanAudioPath = defaultAdhanPath
+            adhanPathField.text = defaultAdhanPath
         }
     }
 
+    // ============================================================
+    // UI LAYOUT
+    // ============================================================
     Kirigami.FormLayout {
-        anchors.fill: parent
+        id: form
 
-        Kirigami.Separator {
-            Kirigami.FormData.isSection: true
-            Kirigami.FormData.label: i18n("Location & Display")
-        }
+        // --- SECTION 1: LOCATION ---
+        Kirigami.Separator { Kirigami.FormData.label: i18n("Location"); Kirigami.FormData.isSection: true }
+
         CheckBox {
-            id: useCoordinatesCheckBox
-            Kirigami.FormData.label: i18n("Use Coordinates Instead of City/Country")
-            checked: plasmoid.configuration.useCoordinates || false
+            id: useCoordsCheck
+            text: i18n("Use Exact Coordinates (Recommended)")
+            Kirigami.FormData.label: i18n("Method:")
+        }
+
+        RowLayout {
+            visible: useCoordsCheck.checked
+            Kirigami.FormData.label: i18n("Coordinates:")
+            TextField { id: latField; placeholderText: i18n("Latitude"); validator: DoubleValidator { bottom: -90.0; top: 90.0; decimals: 15 } }
+            TextField { id: longField; placeholderText: i18n("Longitude"); validator: DoubleValidator { bottom: -180.0; top: 180.0; decimals: 15 } }
         }
 
         TextField {
             id: cityField
+            visible: !useCoordsCheck.checked
             Kirigami.FormData.label: i18n("City:")
-            placeholderText: i18n("e.g. New York")
-            text: plasmoid.configuration.city || ""
-            visible: !useCoordinatesCheckBox.checked
-            enabled: !useCoordinatesCheckBox.checked
+            placeholderText: i18n("e.g. Cairo")
         }
         TextField {
             id: countryField
+            visible: !useCoordsCheck.checked
             Kirigami.FormData.label: i18n("Country:")
-            placeholderText: i18n("e.g. United States")
-            text: plasmoid.configuration.country || ""
-            visible: !useCoordinatesCheckBox.checked
-            enabled: !useCoordinatesCheckBox.checked
-        }
-
-        TextField {
-            id: latitudeField
-            Kirigami.FormData.label: i18n("Latitude:")
-            placeholderText: i18n("e.g. 40.7128")
-            text: plasmoid.configuration.latitude || ""
-            visible: useCoordinatesCheckBox.checked
-            enabled: useCoordinatesCheckBox.checked
-            validator: DoubleValidator { bottom: -90.0; top: 90.0; decimals: 15 }
-        }
-        TextField {
-            id: longitudeField
-            Kirigami.FormData.label: i18n("Longitude:")
-            placeholderText: i18n("e.g. -74.0060")
-            text: plasmoid.configuration.longitude || ""
-            visible: useCoordinatesCheckBox.checked
-            enabled: useCoordinatesCheckBox.checked
-            validator: DoubleValidator { bottom: -180.0; top: 180.0; decimals: 15 }
+            placeholderText: i18n("e.g. Egypt")
         }
 
         ComboBox {
-            id: methodField
-            Kirigami.FormData.label: i18n("Method:")
-            model: [
-                "Jafari / Shia Ithna-Ashari",
-                "University of Islamic Sciences, Karachi",
-                "Islamic Society of North America",
-                "Muslim World League",
-                "Umm Al-Qura University, Makkah",
-                "Egyptian General Authority of Survey",
-                "Institute of Geophysics, University of Tehran",
-                "Gulf Region",
-                "Kuwait",
-                "Qatar",
-                "Majlis Ugama Islam Singapura, Singapore",
-                "Union Organization islamic de France",
-                "Diyanet İşleri Başkanlığı, Turkey",
-                "Spiritual Administration of Muslims of Russia",
-                "Moonsighting Committee Worldwide",
-                "Dubai (experimental)",
-                "JAKIM, Malaysia",
-                "Tunisia",
-                "Algeria",
-                "Indonesia",
-                "Morocco",
-                "Lisbon",
-                "Jordan"
-            ]
-            currentIndex: plasmoid.configuration.method || 4
+            id: methodCombo; Kirigami.FormData.label: i18n("Calculation Method:")
+            model: ["Shia Ithna-Ansari", "University of Islamic Sciences, Karachi", "Islamic Society of North America", "Muslim World League", "Umm Al-Qura University, Makkah", "Egyptian General Authority of Survey", "Institute of Geophysics, University of Tehran", "Gulf Region", "Kuwait", "Qatar", "Majlis Ugama Islam Singapura, Singapore", "Union Organization islamic de France", "Diyanet Isleri Baskanligi, Turkey", "Spiritual Administration of Muslims of Russia"]
         }
-        ComboBox {
-            id: languageField
-            Kirigami.FormData.label: i18n("Language:")
-            model: [ i18n("English"), i18n("العربية") ]
-            currentIndex: plasmoid.configuration.languageIndex || 0
-        }
-        ComboBox {
-            id: schoolField
-            Kirigami.FormData.label: i18n("School:")
-            model: [ i18n("Shafi"), i18n("Hanafi") ]
-            currentIndex: plasmoid.configuration.school || 0
-        }
-        ComboBox {
-            id: compactStyleComboBox
-            Kirigami.FormData.label: i18n("Compact View Style:")
-            model: [
-                i18n("Normal (Name/Time)"),
-                i18n("Side-by-Side Countdown"),
-                i18n("Toggle Every 18s"),
-                i18n("Horizontal (Name next to Time)")
-            ]
-            currentIndex: plasmoid.configuration.compactStyle || 0
-            onCurrentIndexChanged: plasmoid.configuration.compactStyle = currentIndex
-        }
-        CheckBox {
-            id: hourFormatCheckBox
-            Kirigami.FormData.label: i18n("12-Hour Format")
-            checked: plasmoid.configuration.hourFormat || false
-        }
-        CheckBox {
-            id: notificationsCheckBox
-            Kirigami.FormData.label: i18n("Enable Notifications")
-            checked: plasmoid.configuration.notifications || false
-        }
+        ComboBox { id: schoolCombo; Kirigami.FormData.label: i18n("School (Juristic):"); model: ["Shafi (Standard)", "Hanafi"] }
 
-        Kirigami.Separator {
-            Kirigami.FormData.isSection: true
-            Kirigami.FormData.label: i18n("Date & Time Adjustments")
-        }
-        SpinBox{
-            id: preNotificationSpinBox
-            Kirigami.FormData.label: i18n("Pre-Adhan Notification (minutes)")
-            from: 0
-            to: 60
-            value: plasmoid.configuration.preNotificationMinutes || 10
-        }
-        CheckBox {
-            id: preAdhanSoundCheck
-            text: i18n("Play sound for pre-Adhan reminder")
-            checked: cfg_playPreAdhanSound
-            onCheckedChanged: cfg_playPreAdhanSound = checked
-        }
-        SpinBox {
-            id: hijriOffsetSpinBox
-            Kirigami.FormData.label: i18n("Hijri Date Adjustment (days):")
-            from: -2; to: 2
-            value: plasmoid.configuration.hijriOffset || 0
-        }
-        SpinBox {
-            id: fajrOffsetSpin
-            Kirigami.FormData.label: i18n("Fajr Offset (min):")
-            from: -60; to: 60
-            value: plasmoid.configuration.fajrOffsetMinutes || 0
-        }
-        SpinBox {
-            id: sunriseOffsetSpin
-            Kirigami.FormData.label: i18n("Sunrise Offset (min):")
-            from: -60; to: 60
-            value: plasmoid.configuration.sunriseOffsetMinutes || 0
-        }
-        SpinBox {
-            id: dhuhrOffsetSpin
-            Kirigami.FormData.label: i18n("Dhuhr Offset (min):")
-            from: -60; to: 60
-            value: plasmoid.configuration.dhuhrOffsetMinutes || 0
-        }
-        SpinBox {
-            id: asrOffsetSpin
-            Kirigami.FormData.label: i18n("Asr Offset (min):")
-            from: -60; to: 60
-            value: plasmoid.configuration.asrOffsetMinutes || 0
-        }
-        SpinBox {
-            id: maghribOffsetSpin
-            Kirigami.FormData.label: i18n("Maghrib Offset (min):")
-            from: -60; to: 60
-            value: plasmoid.configuration.maghribOffsetMinutes || 0
-        }
-        SpinBox {
-            id: ishaOffsetSpin
-            Kirigami.FormData.label: i18n("Isha Offset (min):")
-            from: -60; to: 60
-            value: plasmoid.configuration.ishaOffsetMinutes || 0
-        }
 
-        Kirigami.Separator {
-            Kirigami.FormData.isSection: true
-            Kirigami.FormData.label: i18n("Quran Player Settings")
+        // --- SECTION 2: APPEARANCE & NOTIFICATIONS ---
+        Kirigami.Separator { Kirigami.FormData.label: i18n("General Settings"); Kirigami.FormData.isSection: true }
+
+        ComboBox {
+            id: compactStyleCombo; Kirigami.FormData.label: i18n("Compact View Style:")
+            model: [i18n("Vertical (Standard)"), i18n("Side-by-Side"), i18n("Toggle View"), i18n("Horizontal (Single Line)")]
         }
         ComboBox {
-            id: quranReciterComboBox
+            id: languageCombo;
+            Kirigami.FormData.label: i18n("Language:");
+            model: ["English", "Arabic"]
+        }
+        CheckBox { id: hourFormatCheck; text: i18n("Use 12-hour format (AM/PM)"); Kirigami.FormData.label: i18n("Time Format:") }
+
+        CheckBox { id: notificationsCheck; text: i18n("Show notification on prayer time"); Kirigami.FormData.label: i18n("Alerts:") }
+
+        RowLayout {
+            Kirigami.FormData.label: i18n("Pre-Notification:")
+            SpinBox { id: preNotificationSpinBox; from: 0; to: 60 }
+            Label { text: i18n("minutes before") }
+        }
+        CheckBox { id: preAdhanSoundCheck; text: i18n("Play sound for pre-Adhan reminder"); Kirigami.FormData.label: "" }
+
+
+        // --- SECTION 3: AUDIO & ADHAN ---
+        Kirigami.Separator { Kirigami.FormData.label: i18n("Audio & Adhan"); Kirigami.FormData.isSection: true }
+
+        // === FIXED COMBOBOX WITH SAFE PROXY ===
+        ComboBox {
+            id: reciterCombo
             Kirigami.FormData.label: i18n("Quran Reciter:")
-            model: languageField.currentIndex === 1 ? quranReciterNames_ar : quranReciterNames
-            currentIndex: plasmoid.configuration.quranReciterIndex || 0
-            onCurrentIndexChanged: console.log("Selected reciter:", quranReciterIdentifiers[currentIndex])
+
+            // 1. Bind visual state to our SAFE property
+            currentIndex: internalReciterIndex
+
+            // 2. Switch models based on language
+            model: (languageCombo.currentIndex === 1) ? reciterNamesAr : reciterNamesEn
+
+            // 3. Only update the safe property when the user CLICKS
+            onActivated: internalReciterIndex = currentIndex
+
+            // 4. THE FIX: If the model swaps and forces index to 0, force it back immediately
+            onModelChanged: {
+                if (currentIndex !== internalReciterIndex) {
+                    currentIndex = internalReciterIndex
+                }
+            }
         }
 
-        Kirigami.Separator {
-            Kirigami.FormData.isSection: true
-            Kirigami.FormData.label: i18n("Adhan Audio Settings")
-        }
         RowLayout {
             Kirigami.FormData.label: i18n("Adhan Audio File:")
             TextField {
-                id: adhanAudioPathField
+                id: adhanPathField
                 Layout.fillWidth: true
                 placeholderText: i18n("Using default adhan...")
-                text: plasmoid.configuration.adhanAudioPath || defaultAdhanPath
-                readOnly: true
-            }
-            Button { text: i18n("Browse…"); onClicked: adhanFileDialog.open() }
-            Button {
-                text: i18n("Reset to Default")
-                onClicked: {
-                    adhanAudioPathField.text = defaultAdhanPath
-                    cfg_adhanAudioPath = defaultAdhanPath
-                }
             }
             Button {
-                text: i18n("Clear")
-                enabled: adhanAudioPathField.text.length > 0
-                onClicked: {
-                    adhanAudioPathField.text = ""
-                    cfg_adhanAudioPath = ""
+                text: i18n("Browse..."); icon.name: "document-open"
+                onClicked: fileDialog.open()
+            }
+            Button {
+                text: i18n("Reset"); icon.name: "edit-clear"
+                onClicked: adhanPathField.text = defaultAdhanPath
+            }
+            Button {
+                text: i18n("Clear"); enabled: adhanPathField.text.length > 0
+                onClicked: adhanPathField.text = ""
+            }
+        }
+
+        Button {
+            text: previewPlayer.playbackState === MediaPlayer.PlayingState ? i18n("Stop Adhan") : i18n("Test Adhan Sound")
+            icon.name: previewPlayer.playbackState === MediaPlayer.PlayingState ? "media-playback-stop" : "media-playback-start"
+            Kirigami.FormData.label: ""
+            enabled: adhanModeCombo.currentIndex > 0
+
+            onClicked: {
+                if (previewPlayer.playbackState === MediaPlayer.PlayingState) {
+                    previewPlayer.stop()
+                    testAdhanStopTimer.stop()
+                } else {
+                    let rawPath = adhanPathField.text
+                    if (rawPath === "") rawPath = defaultAdhanPath
+
+                        let pathString = rawPath.toString()
+                        if (!pathString.startsWith("file://") && !pathString.startsWith("qrc") && !pathString.startsWith("http")) {
+                            pathString = "file://" + pathString
+                        }
+
+                        console.log("Testing Adhan:", pathString)
+                        previewPlayer.source = pathString
+                        previewPlayer.play()
+
+                        let mode = adhanModeCombo.currentIndex
+                        if (mode === 2) {
+                            testAdhanStopTimer.interval = 40000
+                            testAdhanStopTimer.start()
+                        } else if (mode === 3) {
+                            testAdhanStopTimer.interval = 17000
+                            testAdhanStopTimer.start()
+                        }
                 }
             }
         }
-        ComboBox {
-            id: adhanPlaybackModeComboBox
-            Kirigami.FormData.label: i18n("Playback Mode:")
-            model: [
-                i18n("Off (No Audio)"),
-                i18n("Full Adhan"),
-                i18n("First 40 seconds only"),
-                i18n("First 17 seconds only")
-            ]
-            currentIndex: plasmoid.configuration.adhanPlaybackMode || 4
-        }
+
         RowLayout {
-            Kirigami.FormData.label: i18n("Volume:")
+            Kirigami.FormData.label: i18n("Adhan Volume:")
             Slider {
                 id: adhanVolumeSlider
                 Layout.fillWidth: true
-                from: 0.0; to: 1.0; stepSize: 0.1
-                value: plasmoid.configuration.adhanVolume || 0.7
-                enabled: adhanPlaybackModeComboBox.currentIndex > 0
+                from: 0.0; to: 1.0; stepSize: 0.05
+                value: 0.7
             }
-            Label { text: Math.round(adhanVolumeSlider.value * 100) + "%" }
+            Label {
+                text: Math.round(adhanVolumeSlider.value * 100) + "%"
+                Layout.minimumWidth: Kirigami.Units.gridUnit * 2
+            }
         }
-        Kirigami.Separator {
-            Kirigami.FormData.isSection: true
-            Kirigami.FormData.label: i18n("Play Adhan For:")
-        }
-        CheckBox {
-            id: playAdhanForFajrCheckBox
-            Kirigami.FormData.label: i18n("Fajr")
-            checked: plasmoid.configuration.playAdhanForFajr !== false
-            enabled: adhanPlaybackModeComboBox.currentIndex > 0
-        }
-        CheckBox {
-            id: playAdhanForDhuhrCheckBox
-            Kirigami.FormData.label: i18n("Dhuhr")
-            checked: plasmoid.configuration.playAdhanForDhuhr !== false
-            enabled: adhanPlaybackModeComboBox.currentIndex > 0
-        }
-        CheckBox {
-            id: playAdhanForAsrCheckBox
-            Kirigami.FormData.label: i18n("Asr")
-            checked: plasmoid.configuration.playAdhanForAsr !== false
-            enabled: adhanPlaybackModeComboBox.currentIndex > 0
-        }
-        CheckBox {
-            id: playAdhanForMaghribCheckBox
-            Kirigami.FormData.label: i18n("Maghrib")
-            checked: plasmoid.configuration.playAdhanForMaghrib !== false
-            enabled: adhanPlaybackModeComboBox.currentIndex > 0
-        }
-        CheckBox {
-            id: playAdhanForIshaCheckBox
-            Kirigami.FormData.label: i18n("Isha")
-            checked: plasmoid.configuration.playAdhanForIsha !== false
-            enabled: adhanPlaybackModeComboBox.currentIndex > 0
-        }
-        Button {
-            Kirigami.FormData.label: i18n("Test Audio:")
-            text: i18n("Test Adhan Playback")
-            enabled: adhanPlaybackModeComboBox.currentIndex > 0
-            onClicked: {
-                testStopTimer.stop()
-                testPlayer.stop()
-                let audioPath = adhanAudioPathField.text || defaultAdhanPath
-                let sourceUrl = audioPath
-                if (!sourceUrl.startsWith("file://") && !sourceUrl.startsWith("qrc:/")) {
-                    sourceUrl = "file://" + sourceUrl
-                }
-                testPlayer.source = sourceUrl
-                testAudioOutput.volume = adhanVolumeSlider.value
-                testPlayer.play()
 
-                if (adhanPlaybackModeComboBox.currentIndex === 2) {
-                    testStopTimer.start()
-                } else if (adhanPlaybackModeComboBox.currentIndex === 3) {
-                    testStopTimer.interval = 17000
-                    testStopTimer.start()
-                }
+        ComboBox {
+            id: adhanModeCombo; Kirigami.FormData.label: i18n("Adhan Playback:")
+            model: [i18n("No Adhan"), i18n("Full Adhan"), i18n("Short (40s)"), i18n("Very Short (17s)")]
+        }
+
+        GridLayout {
+            columns: 3; Kirigami.FormData.label: i18n("Play Adhan For:")
+            CheckBox { id: playFajrCheck; text: i18n("Fajr") }
+            CheckBox { id: playDhuhrCheck; text: i18n("Dhuhr") }
+            CheckBox { id: playAsrCheck; text: i18n("Asr") }
+            CheckBox { id: playMaghribCheck; text: i18n("Maghrib") }
+            CheckBox { id: playIshaCheck; text: i18n("Isha") }
+        }
+
+
+        // --- SECTION 4: ADJUSTMENTS ---
+        Kirigami.Separator { Kirigami.FormData.label: i18n("Adjustments"); Kirigami.FormData.isSection: true }
+
+        Label {
+            text: i18n("Adjust times in minutes (+/-)")
+            font.italic: true
+            Layout.fillWidth: true
+            opacity: 0.7
+        }
+
+        GridLayout {
+            columns: 4
+            rowSpacing: Kirigami.Units.smallSpacing
+            columnSpacing: Kirigami.Units.largeSpacing
+
+            Label { text: i18n("Fajr:") }
+            SpinBox { id: fajrOffset; from: -60; to: 60; editable: true }
+
+            Label { text: i18n("Sunrise:") }
+            SpinBox { id: sunriseOffset; from: -60; to: 60; editable: true }
+
+            Label { text: i18n("Dhuhr:") }
+            SpinBox { id: dhuhrOffset; from: -60; to: 60; editable: true }
+
+            Label { text: i18n("Asr:") }
+            SpinBox { id: asrOffset; from: -60; to: 60; editable: true }
+
+            Label { text: i18n("Maghrib:") }
+            SpinBox { id: maghribOffset; from: -60; to: 60; editable: true }
+
+            Label { text: i18n("Isha:") }
+            SpinBox { id: ishaOffset; from: -60; to: 60; editable: true }
+        }
+
+        RowLayout {
+            Kirigami.FormData.label: i18n("Hijri Date Offset:")
+            SpinBox {
+                id: hijriOffsetSpin
+                from: -5; to: 5
+                editable: true
             }
+            Label { text: i18n("days") }
         }
     }
 }
