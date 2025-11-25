@@ -68,6 +68,7 @@ PlasmoidItem {
     property int storedQuranPos: 0
     property bool storedWasPlayerA: true
     property bool storedContinuousActive: false
+    property bool storedWasPlaying: false
 
     property var nextPrayerDateTime: null
     property string timeUntilNextPrayer: ""
@@ -908,6 +909,9 @@ PlasmoidItem {
             if (!shouldPlay) return
 
                 var activeP = root.isPlayerA_the_active_verse_player ? playerA : playerB
+                root.storedWasPlaying = (activeP.playbackState === MediaPlayer.PlayingState)
+
+
                 root.storedQuranUrl = activeP.source.toString()
                 root.storedQuranPos = activeP.position
                 root.storedWasPlayerA = root.isPlayerA_the_active_verse_player
@@ -958,7 +962,12 @@ PlasmoidItem {
             }
 
             quranPlayer.position = root.storedQuranPos
-            quranPlayer.play()
+            if (root.storedWasPlaying) {
+                console.log("Resuming Quran...")
+                quranPlayer.play()
+            } else {
+                console.log("Quran was paused before Adhan. Staying paused.")
+            }
         }
     }
 
@@ -1119,11 +1128,46 @@ PlasmoidItem {
             root.hijriDateDisplay = i18n("Date unavailable")
             root.currentHijriDay = 0; root.currentHijriMonth = 0; root.currentHijriYear = 0
         } else {
-            root.currentHijriDay = parseInt(hijriDataObject.day, 10)
-            root.currentHijriMonth = parseInt(hijriDataObject.month.number, 10)
-            root.currentHijriYear = parseInt(hijriDataObject.year, 10)
-            let monthNameToDisplay = (root.languageIndex === 1) ? hijriDataObject.month.ar : hijriDataObject.month.en
-            root.hijriDateDisplay = `${root.currentHijriDay} ${monthNameToDisplay} ${root.currentHijriYear}`
+            // 1. Get raw values from API
+            let rawDay = parseInt(hijriDataObject.day, 10)
+            let rawMonth = parseInt(hijriDataObject.month.number, 10)
+            let rawYear = parseInt(hijriDataObject.year, 10)
+
+            // 2. Apply the Offset from Settings locally
+            let offset = Plasmoid.configuration.hijriOffset || 0
+            let adjustedDay = rawDay + offset
+
+            // 3. Handle simple rollovers (Assuming 30 days/month for safety)
+            // This ensures we don't show "31 Ramadan" or "0 Ramadan"
+            if (adjustedDay > 30) {
+                adjustedDay -= 30
+                rawMonth += 1
+                if (rawMonth > 12) { rawMonth = 1; rawYear += 1 }
+            } else if (adjustedDay < 1) {
+                adjustedDay += 30
+                rawMonth -= 1
+                if (rawMonth < 1) { rawMonth = 12; rawYear -= 1 }
+            }
+
+            // 4. Save to Root Properties
+            root.currentHijriDay = adjustedDay
+            root.currentHijriMonth = rawMonth
+            root.currentHijriYear = rawYear
+
+            // 5. Get the Month Name (We can't use the API's string anymore because the month might have changed)
+            // We use a local array to ensure the name matches the new calculated month
+            let arMonths = ["محرم", "صفر", "ربيع الأول", "ربيع الآخر", "جمادى الأولى", "جمادى الآخرة", "رجب", "شعبان", "رمضان", "شوال", "ذو القعدة", "ذو الحجة"]
+            let enMonths = ["Muharram", "Safar", "Rabi Al-Awwal", "Rabi Al-Thani", "Jumada Al-Awwal", "Jumada Al-Thani", "Rajab", "Sha'ban", "Ramadan", "Shawwal", "Dhu Al-Qi'dah", "Dhu Al-Hijjah"]
+
+            // Adjust index (Month 1 is index 0)
+            let mIndex = rawMonth - 1
+            if (mIndex < 0) mIndex = 0
+                if (mIndex > 11) mIndex = 11
+
+                    let monthName = (root.languageIndex === 1) ? arMonths[mIndex] : enMonths[mIndex]
+
+                    // 6. Display
+                    root.hijriDateDisplay = `${root.currentHijriDay} ${monthName} ${root.currentHijriYear}`
         }
         updateSpecialIslamicDateMessage()
     }
@@ -1154,11 +1198,17 @@ PlasmoidItem {
 
     function fetchTimes() {
         let todayForAPI = getFormattedDate(new Date())
+        let method = Plasmoid.configuration.method || 4
+        let school = Plasmoid.configuration.school || 0
+
+        let hijriAdj = Plasmoid.configuration.hijriOffset || 0
+
         let URL = ""
+
         if (root.useCoordinates && root.latitude && root.longitude) {
-            URL = `https://api.aladhan.com/v1/timings/${todayForAPI}?latitude=${encodeURIComponent(root.latitude)}&longitude=${encodeURIComponent(root.longitude)}&method=${Plasmoid.configuration.method || 4}&school=${Plasmoid.configuration.school || 0}`
+            URL = `https://api.aladhan.com/v1/timings/${todayForAPI}?latitude=${encodeURIComponent(root.latitude)}&longitude=${encodeURIComponent(root.longitude)}&method=${method}&school=${school}&adjustment=${hijriAdj}`
         } else {
-            URL = `https://api.aladhan.com/v1/timingsByCity/${todayForAPI}?city=${encodeURIComponent(Plasmoid.configuration.city || "Makkah")}&country=${encodeURIComponent(Plasmoid.configuration.country || "Saudi Arabia")}&method=${Plasmoid.configuration.method || 4}&school=${Plasmoid.configuration.school || 0}`
+            URL = `https://api.aladhan.com/v1/timingsByCity/${todayForAPI}?city=${encodeURIComponent(Plasmoid.configuration.city || "Makkah")}&country=${encodeURIComponent(Plasmoid.configuration.country || "Saudi Arabia")}&method=${method}&school=${school}&adjustment=${hijriAdj}`
         }
 
         let xhr = new XMLHttpRequest()
@@ -1168,29 +1218,16 @@ PlasmoidItem {
                     let responseData = JSON.parse(xhr.responseText).data
                     root.times = responseData.timings
                     root.times.apiGregorianDate = responseData.date.gregorian.date
+
+                    // The API has already applied the offset for us!
                     root.rawHijriDataFromApi = responseData.date.hijri
+
                     resetPreNotifications()
                     processRawTimesAndApplyOffsets()
 
-                    let offset = Plasmoid.configuration.hijriOffset || 0
-                    if (offset !== 0) {
-                        let parts = responseData.date.gregorian.date.split('-')
-                        let originalJsDate = new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]))
-                        originalJsDate.setDate(originalJsDate.getDate() + offset)
-                        let adjustedGregorianDateStr = getFormattedDate(originalJsDate)
-                        let hijriApiURL = `https://api.aladhan.com/v1/gToH?date=${adjustedGregorianDateStr}`
-                        let hijriXhrNested = new XMLHttpRequest()
-                        hijriXhrNested.onreadystatechange = function() {
-                            if (hijriXhrNested.readyState === 4) {
-                                if (hijriXhrNested.status === 200) _setProcessedHijriData(JSON.parse(hijriXhrNested.responseText).data.hijri)
-                                    else _setProcessedHijriData(root.rawHijriDataFromApi)
-                            }
-                        }
-                        hijriXhrNested.open("GET", hijriApiURL, true)
-                        hijriXhrNested.send()
-                    } else {
-                        _setProcessedHijriData(root.rawHijriDataFromApi)
-                    }
+                    // Directly set the data (No more complex nested requests)
+                    _setProcessedHijriData(root.rawHijriDataFromApi)
+
                     update5DayCache()
                 } else {
                     loadFromCache()
@@ -1200,7 +1237,6 @@ PlasmoidItem {
         xhr.open("GET", URL, true)
         xhr.send()
     }
-
     function saveTodayToCache() {
         if (!root.times || !root.times.Fajr || !root.rawHijriDataFromApi) return
             let todayKey = getYYYYMMDD(new Date())
