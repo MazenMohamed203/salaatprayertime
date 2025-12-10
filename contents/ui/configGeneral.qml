@@ -69,14 +69,14 @@ KCM.SimpleKCM {
         "Minshawi (Murattal)", "Alafasy", "Husary (Murattal)",
         "Abdurrahmaan As-Sudais", "Maher Al Muaiqly", "Abu Bakr Ash-Shaatree",
         "Abdullah Basfar", "Abdulbasit (Murattal)", "Hudhaify", "Muhammad Jibreel",
-        "Husary (Mujawwad)", "Minshawi (Mujawwad)"
+        "Husary (Mujawwad)", "Minshawi (Mujawwad)", "Ahmed ibn Ali al-Ajamy"
     ]
 
     property var reciterNamesAr: [
         "المنشاوي (مرتل)", "العفاسي", "الحصري (مرتل)",
         "عبد الرحمن السديس", "ماهر المعيقلي", "أبو بكر الشاطري",
         "عبد الله بصفر", "عبد الباسط (مرتل)", "الحذيفي", "محمد جبريل",
-        "الحصري (مجود)", "المنشاوي (مجود)"
+        "الحصري (مجود)", "المنشاوي (مجود)", "أحمد بن علي العجمي"
     ]
 
     property string defaultAdhanPath: {
