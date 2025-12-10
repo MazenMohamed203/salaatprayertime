@@ -153,21 +153,21 @@ PlasmoidItem {
         "ar.minshawi", "ar.alafasy", "ar.husary", "ar.abdurrahmaansudais",
         "ar.mahermuaiqly", "ar.shaatree", "ar.abdullahbasfar",
         "ar.abdulbasitmurattal", "ar.hudhaify", "ar.muhammadjibreel",
-        "ar.husarymujawwad", "ar.minshawimujawwad"
+        "ar.husarymujawwad", "ar.minshawimujawwad", "ar.ahmedajamy"
     ]
 
     property var quranReciterNames: [
         i18n("Minshawi (Murattal)"), i18n("Alafasy"), i18n("Husary (Murattal)"),
         i18n("Abdurrahmaan As-Sudais"), i18n("Maher Al Muaiqly"), i18n("Abu Bakr Ash-Shaatree"),
         i18n("Abdullah Basfar"), i18n("Abdulbasit (Murattal)"), i18n("Hudhaify"), i18n("Muhammad Jibreel"),
-        i18n("Husary (Mujawwad)"), i18n("Minshawi (Mujawwad)")
+        i18n("Husary (Mujawwad)"), i18n("Minshawi (Mujawwad)"), i18n("Ahmed ibn Ali al-Ajamy")
     ]
 
     property var quranReciterNames_ar: [
         "المنشاوي (مرتل)", "العفاسي", "الحصري (مرتل)", "عبد الرحمن السديس",
         "ماهر المعيقلي", "أبو بكر الشاطري", "عبد الله بصفر", "عبد الباسط (مرتل)",
         "الحذيفي", "محمد جبريل",
-        "الحصري (مجود)", "المنشاوي (مجود)"
+        "الحصري (مجود)", "المنشاوي (مجود)", "أحمد بن علي العجمي"
     ]
 
     property int quranReciterIndex: Plasmoid.configuration.quranReciterIndex || 0
