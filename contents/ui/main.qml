@@ -307,6 +307,11 @@ PlasmoidItem {
     // AUDIO PLAYERS
     // =========================================================================
 
+    MediaDevices {
+        id: mediaDevices
+    }
+
+
     MediaPlayer {
         id: playerA
         audioOutput: audioOutputA
@@ -361,7 +366,11 @@ PlasmoidItem {
             handleAudioFailure();
         }
     }
-    AudioOutput { id: audioOutputA; volume: root.isAdhanPlaying ? root.adhanVolume : root.quranVolume }
+    AudioOutput {
+        id: audioOutputA
+        volume: root.isAdhanPlaying ? root.adhanVolume : root.quranVolume
+        device: mediaDevices.defaultAudioOutput
+    }
 
     MediaPlayer {
         id: playerB
@@ -412,7 +421,11 @@ PlasmoidItem {
             handleAudioFailure();
         }
     }
-    AudioOutput { id: audioOutputB; volume: root.quranVolume }
+    AudioOutput {
+        id: audioOutputB
+        volume: root.quranVolume
+        device: mediaDevices.defaultAudioOutput
+    }
 
     function handleAudioFailure() {
         console.log("Skipping verse...");
