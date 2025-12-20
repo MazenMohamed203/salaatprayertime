@@ -306,10 +306,31 @@ PlasmoidItem {
     // =========================================================================
     // AUDIO PLAYERS
     // =========================================================================
-
     MediaDevices {
         id: mediaDevices
     }
+
+    Connections {
+        target: mediaDevices
+        function onDefaultAudioOutputChanged() {
+            console.log("System Default Changed. Updating outputs...")
+
+            var wasPlayingA = (playerA.playbackState === MediaPlayer.PlayingState)
+
+
+            audioOutputA.device = mediaDevices.defaultAudioOutput
+
+            if (wasPlayingA) playerA.play()
+
+                var wasPlayingB = (playerB.playbackState === MediaPlayer.PlayingState)
+
+
+                audioOutputB.device = mediaDevices.defaultAudioOutput
+
+                if (wasPlayingB) playerB.play()
+        }
+    }
+
 
 
     MediaPlayer {
@@ -371,7 +392,6 @@ PlasmoidItem {
         volume: root.isAdhanPlaying ? root.adhanVolume : root.quranVolume
         device: mediaDevices.defaultAudioOutput
     }
-
     MediaPlayer {
         id: playerB
         audioOutput: audioOutputB
@@ -426,7 +446,6 @@ PlasmoidItem {
         volume: root.quranVolume
         device: mediaDevices.defaultAudioOutput
     }
-
     function handleAudioFailure() {
         console.log("Skipping verse...");
         var notification = notificationComponent.createObject(root);
