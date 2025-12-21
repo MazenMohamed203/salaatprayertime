@@ -179,7 +179,6 @@ KCM.SimpleKCM {
         }
         CheckBox { id: hourFormatCheck; text: i18n("Use 12-hour format (AM/PM)"); Kirigami.FormData.label: i18n("Time Format:") }
         CheckBox { id: dynamicFontCheck; text: i18n("Fit text to width"); Kirigami.FormData.label: i18n("Appearance:") }
-        CheckBox { id: showBackgroundCheck; text: i18n("Show background"); Kirigami.FormData.label: "" }
 
         CheckBox { id: notificationsCheck; text: i18n("Show notification on prayer time"); Kirigami.FormData.label: i18n("Alerts:") }
 
@@ -344,5 +343,14 @@ KCM.SimpleKCM {
             }
             Label { text: i18n("days") }
         }
+
+        CheckBox { id: showBackgroundCheck; text: i18n("Show background"); Kirigami.FormData.label: "" }
+        Label {
+            text: i18n("Leave checked if no difference")
+            font.italic: true
+            Layout.fillWidth: true
+            opacity: 0.7
+        }
+
     }
 }
