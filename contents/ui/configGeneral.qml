@@ -39,6 +39,8 @@ KCM.SimpleKCM {
     property alias cfg_notifications: notificationsCheck.checked
     property alias cfg_preNotificationMinutes: preNotificationSpinBox.value
     property alias cfg_playPreAdhanSound: preAdhanSoundCheck.checked
+    property alias cfg_useDynamicFont: dynamicFontCheck.checked
+    property alias cfg_showBackground: showBackgroundCheck.checked
 
     // Audio
     property alias cfg_adhanAudioPath: adhanPathField.text
@@ -176,6 +178,8 @@ KCM.SimpleKCM {
             model: ["English", "Arabic"]
         }
         CheckBox { id: hourFormatCheck; text: i18n("Use 12-hour format (AM/PM)"); Kirigami.FormData.label: i18n("Time Format:") }
+        CheckBox { id: dynamicFontCheck; text: i18n("Fit text to width"); Kirigami.FormData.label: i18n("Appearance:") }
+        CheckBox { id: showBackgroundCheck; text: i18n("Show background"); Kirigami.FormData.label: "" }
 
         CheckBox { id: notificationsCheck; text: i18n("Show notification on prayer time"); Kirigami.FormData.label: i18n("Alerts:") }
 

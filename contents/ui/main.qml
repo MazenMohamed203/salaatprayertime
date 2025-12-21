@@ -7,12 +7,15 @@ import org.kde.plasma.plasmoid
 import org.kde.notification
 import Qt.labs.settings
 import QtMultimedia
+import org.kde.plasma.core as PlasmaCore
 
 PlasmoidItem {
     id: root
 
     Layout.minimumWidth: Kirigami.Units.gridUnit * 7
     Layout.preferredWidth: Kirigami.Units.gridUnit * 7
+
+    Plasmoid.backgroundHints: (Plasmoid.configuration.showBackground === undefined || Plasmoid.configuration.showBackground) ? PlasmaCore.Types.StandardBackground : PlasmaCore.Types.NoBackground
 
     // =========================================================================
     // PROPERTIES & DATA
@@ -536,11 +539,17 @@ PlasmoidItem {
                     else return i18n("Time until next prayer: %1", root.timeUntilNextPrayer);
                 }
                 visible: root.timeUntilNextPrayer !== "" && root.timeUntilNextPrayer !== i18n("Prayer time!")
-                font.pointSize: Kirigami.Theme.smallFont.pointSize
+                
+                width: parent.width - (Kirigami.Units.largeSpacing * 2)
+                fontSizeMode: (Plasmoid.configuration.useDynamicFont === undefined || Plasmoid.configuration.useDynamicFont) ? Text.Fit : Text.FixedSize
+                minimumPixelSize: 10
+                font.pixelSize: (Plasmoid.configuration.useDynamicFont === undefined || Plasmoid.configuration.useDynamicFont) ? 72 : Kirigami.Theme.smallFont.pixelSize
+
                 font.weight: Font.Bold
                 opacity: 0.95
                 color: Kirigami.Theme.textColor
                 anchors.horizontalCenter: parent.horizontalCenter
+                horizontalAlignment: Text.AlignHCenter
             }
 
             PlasmaComponents.MenuSeparator {
@@ -848,7 +857,8 @@ PlasmoidItem {
         root.isFetchingVerse = true;
 
         console.log("Fetching Surah " + surahNum + " Verse " + ayahNum)
-        let URL = `https://api.alquran.cloud/v1/ayah/${surahNum}:${ayahNum}/editions/quran-uthmani,en.sahih,${root.activeReciterIdentifier}`
+        let targetReciter = root.activeReciterIdentifier
+        let URL = `https://api.alquran.cloud/v1/ayah/${surahNum}:${ayahNum}/editions/quran-uthmani,en.sahih,${targetReciter}`
 
         let xhr = new XMLHttpRequest()
         xhr.onreadystatechange = function() {
@@ -859,7 +869,7 @@ PlasmoidItem {
                         let data = JSON.parse(xhr.responseText).data
                         let arabicData = data.find(ed => ed.edition.identifier === "quran-uthmani")
                         let translationData = data.find(ed => ed.edition.identifier === "en.sahih")
-                        let audioData = data.find(ed => ed.edition.identifier === root.activeReciterIdentifier)
+                        let audioData = data.find(ed => ed.edition.identifier === targetReciter)
 
                         if (audioData && arabicData) {
                             root.dailyVerseArabic = arabicData.text
@@ -1439,7 +1449,8 @@ PlasmoidItem {
                 console.log("Reached end of Quran.");
                 return
             }
-            let URL = `https://api.alquran.cloud/v1/ayah/${ayahNumber}/editions/quran-uthmani,en.sahih,${root.activeReciterIdentifier}`
+            let targetReciter = root.activeReciterIdentifier
+            let URL = `https://api.alquran.cloud/v1/ayah/${ayahNumber}/editions/quran-uthmani,en.sahih,${targetReciter}`
 
             let xhr = new XMLHttpRequest()
             xhr.onreadystatechange = function() {
@@ -1449,7 +1460,7 @@ PlasmoidItem {
                             let data = JSON.parse(xhr.responseText).data
                             let arabicData = data.find(ed => ed.edition.identifier === "quran-uthmani")
                             let translationData = data.find(ed => ed.edition.identifier === "en.sahih")
-                            let audioData = data.find(ed => ed.edition.identifier === root.activeReciterIdentifier)
+                            let audioData = data.find(ed => ed.edition.identifier === targetReciter)
 
                             if (audioData && audioData.audio && arabicData && translationData) {
                                 root.nextQueuedArabic = arabicData.text
@@ -1498,13 +1509,6 @@ PlasmoidItem {
                         else if (key === "longitude") root.longitude = Plasmoid.configuration.longitude || ""
                             fetchTimes()
 
-                } else if (key === "quranReciterIndex") {
-                    root.quranReciterIndex = Plasmoid.configuration.quranReciterIndex || 0
-                    root.activeReciterIdentifier = root.quranReciterIdentifiers[root.quranReciterIndex]
-                    console.log("Reciter changed to:", root.activeReciterIdentifier)
-                    cacheSettings.verseCacheData = "{}"
-                    cacheSettings.verseCacheDate = ""
-                    fetchDailyVerse()
                 } else if (key === "adhanAudioPath") {
                     root.adhanAudioPath = Plasmoid.configuration.adhanAudioPath || ""
                 } else if (key === "adhanPlaybackMode") {
@@ -1521,5 +1525,14 @@ PlasmoidItem {
                     }
                 }
         })
+    }
+
+    onQuranReciterIndexChanged: {
+         console.log("Reciter index changed to:", root.quranReciterIndex)
+         // property activeReciterIdentifier automatically updates due to binding
+         console.log("New identifier:", root.activeReciterIdentifier)
+         cacheSettings.verseCacheData = "{}"
+         cacheSettings.verseCacheDate = ""
+         fetchDailyVerse()
     }
 }

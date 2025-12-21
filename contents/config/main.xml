@@ -91,6 +91,12 @@
 
     <entry name="quranReciterIndex" type="Int">
       <default>0</default> </entry>
+    <entry name="useDynamicFont" type="Bool">
+      <default>true</default>
+    </entry>
+    <entry name="showBackground" type="Bool">
+      <default>true</default>
+    </entry>
 
   </group>
   <group name="About">
