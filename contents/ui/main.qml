@@ -7,12 +7,15 @@ import org.kde.plasma.plasmoid
 import org.kde.notification
 import Qt.labs.settings
 import QtMultimedia
+import org.kde.plasma.core as PlasmaCore
 
 PlasmoidItem {
     id: root
 
     Layout.minimumWidth: Kirigami.Units.gridUnit * 7
     Layout.preferredWidth: Kirigami.Units.gridUnit * 7
+
+    Plasmoid.backgroundHints: (Plasmoid.configuration.showBackground === undefined || Plasmoid.configuration.showBackground) ? PlasmaCore.Types.StandardBackground : PlasmaCore.Types.NoBackground
 
     // =========================================================================
     // PROPERTIES & DATA
@@ -536,11 +539,17 @@ PlasmoidItem {
                     else return i18n("Time until next prayer: %1", root.timeUntilNextPrayer);
                 }
                 visible: root.timeUntilNextPrayer !== "" && root.timeUntilNextPrayer !== i18n("Prayer time!")
-                font.pointSize: Kirigami.Theme.smallFont.pointSize
+                
+                width: parent.width - (Kirigami.Units.largeSpacing * 2)
+                fontSizeMode: (Plasmoid.configuration.useDynamicFont === undefined || Plasmoid.configuration.useDynamicFont) ? Text.Fit : Text.FixedSize
+                minimumPixelSize: 10
+                font.pixelSize: (Plasmoid.configuration.useDynamicFont === undefined || Plasmoid.configuration.useDynamicFont) ? 72 : Kirigami.Theme.smallFont.pixelSize
+
                 font.weight: Font.Bold
                 opacity: 0.95
                 color: Kirigami.Theme.textColor
                 anchors.horizontalCenter: parent.horizontalCenter
+                horizontalAlignment: Text.AlignHCenter
             }
 
             PlasmaComponents.MenuSeparator {
