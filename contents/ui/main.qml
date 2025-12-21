@@ -14,8 +14,10 @@ PlasmoidItem {
 
     Layout.minimumWidth: Kirigami.Units.gridUnit * 7
     Layout.preferredWidth: Kirigami.Units.gridUnit * 7
-
     Plasmoid.backgroundHints: (Plasmoid.configuration.showBackground === undefined || Plasmoid.configuration.showBackground) ? PlasmaCore.Types.StandardBackground : PlasmaCore.Types.NoBackground
+
+
+
 
     // =========================================================================
     // PROPERTIES & DATA
@@ -506,7 +508,7 @@ PlasmoidItem {
 
             Label {
                 text: "{صّلِ عَلۓِ مُحَمد ﷺ}"
-                font.pointSize: Kirigami.Theme.defaultFont.pointSize + 1
+                font.pointSize: Kirigami.Theme.defaultFont.pointSize + 3
                 font.weight: Font.Bold
                 wrapMode: Text.WordWrap
                 horizontalAlignment: Text.AlignHCenter
@@ -515,17 +517,25 @@ PlasmoidItem {
 
             Label {
                 text: root.hijriDateDisplay
-                font.pointSize: Kirigami.Theme.defaultFont.pointSize
+                width: parent.width - (Kirigami.Units.largeSpacing * 2)
+                fontSizeMode: (Plasmoid.configuration.useDynamicFont === undefined || Plasmoid.configuration.useDynamicFont) ? Text.Fit : Text.FixedSize
+                minimumPixelSize: 10
+                font.pixelSize: (Plasmoid.configuration.useDynamicFont === undefined || Plasmoid.configuration.useDynamicFont) ? Math.min(parent.width * 0.04, 32) : Kirigami.Theme.smallFont.pixelSize
+
                 font.weight: Font.Bold
                 opacity: 0.9
                 anchors.horizontalCenter: parent.horizontalCenter
+                horizontalAlignment: Text.AlignHCenter
             }
 
             Label {
                 text: root.specialIslamicDateMessage
                 visible: root.specialIslamicDateMessage !== ""
-                font.pointSize: Kirigami.Theme.smallFont.pointSize
-                font.italic: true
+                width: parent.width - (Kirigami.Units.largeSpacing * 2)
+                fontSizeMode: (Plasmoid.configuration.useDynamicFont === undefined || Plasmoid.configuration.useDynamicFont) ? Text.Fit : Text.FixedSize
+                minimumPixelSize: 10
+                font.pixelSize: (Plasmoid.configuration.useDynamicFont === undefined || Plasmoid.configuration.useDynamicFont) ? Math.min(parent.width * 0.035, 27) : Kirigami.Theme.smallFont.pixelSize
+                font.weight: Font.Bold
                 opacity: 0.85
                 anchors.horizontalCenter: parent.horizontalCenter
                 wrapMode: Text.WordWrap
@@ -539,11 +549,12 @@ PlasmoidItem {
                     else return i18n("Time until next prayer: %1", root.timeUntilNextPrayer);
                 }
                 visible: root.timeUntilNextPrayer !== "" && root.timeUntilNextPrayer !== i18n("Prayer time!")
-                
+
+
                 width: parent.width - (Kirigami.Units.largeSpacing * 2)
                 fontSizeMode: (Plasmoid.configuration.useDynamicFont === undefined || Plasmoid.configuration.useDynamicFont) ? Text.Fit : Text.FixedSize
                 minimumPixelSize: 10
-                font.pixelSize: (Plasmoid.configuration.useDynamicFont === undefined || Plasmoid.configuration.useDynamicFont) ? 72 : Kirigami.Theme.smallFont.pixelSize
+                font.pixelSize: (Plasmoid.configuration.useDynamicFont === undefined || Plasmoid.configuration.useDynamicFont) ? Math.min(parent.width * 0.048, 34) : Kirigami.Theme.smallFont.pixelSize
 
                 font.weight: Font.Bold
                 opacity: 0.95
@@ -551,7 +562,6 @@ PlasmoidItem {
                 anchors.horizontalCenter: parent.horizontalCenter
                 horizontalAlignment: Text.AlignHCenter
             }
-
             PlasmaComponents.MenuSeparator {
                 width: parent.width - (parent.padding * 2)
                 topPadding: Kirigami.Units.moderateSpacing
@@ -1215,8 +1225,14 @@ PlasmoidItem {
     }
 
     function updateSpecialIslamicDateMessage() {
-        let day = root.currentHijriDay; let month = root.currentHijriMonth; let message = ""
-        if (month === 0 || day === 0) { root.specialIslamicDateMessage = ""; return }
+        let day = root.currentHijriDay;
+        let month = root.currentHijriMonth;
+        let message = ""
+
+        if (month === 0 || day === 0) {
+            root.specialIslamicDateMessage = "";
+            return
+        }
 
         if (month === 9) message = (root.languageIndex === 1) ? "شهر رمضان" : "Month of Ramadan"
             else if (month === 10 && day === 1) message = (root.languageIndex === 1) ? "عيد الفطر" : "Eid al-Fitr"
@@ -1234,7 +1250,13 @@ PlasmoidItem {
                             if (day === 13 || day === 14 || day === 15) message = (root.languageIndex === 1) ? "الأيام البيض" : "Ayyām al-Bīḍ (The White Days)"
                                 else if (day === 12) message = (root.languageIndex === 1) ? "غداً تبدأ الأيام البيض" : "White Days begin tomorrow"
                                     else if (day === 11) message = (root.languageIndex === 1) ? "باقي يومان على الأيام البيض" : "2 days until White Days"
+
+
+                                        if (message === "" && (month === 1 || month === 7 || month === 11 || month === 12)) {
+                                            message = (root.languageIndex === 1) ? "الأشهر الحرم" : "Al-Ashhur al-Ḥurum (The Sacred Months)";
+                                        }
                         }
+
                         root.specialIslamicDateMessage = message
     }
 
@@ -1528,11 +1550,11 @@ PlasmoidItem {
     }
 
     onQuranReciterIndexChanged: {
-         console.log("Reciter index changed to:", root.quranReciterIndex)
-         // property activeReciterIdentifier automatically updates due to binding
-         console.log("New identifier:", root.activeReciterIdentifier)
-         cacheSettings.verseCacheData = "{}"
-         cacheSettings.verseCacheDate = ""
-         fetchDailyVerse()
+        console.log("Reciter index changed to:", root.quranReciterIndex)
+        // property activeReciterIdentifier automatically updates due to binding
+        console.log("New identifier:", root.activeReciterIdentifier)
+        cacheSettings.verseCacheData = "{}"
+        cacheSettings.verseCacheDate = ""
+        fetchDailyVerse()
     }
 }
