@@ -160,7 +160,8 @@ KCM.SimpleKCM {
 
         ComboBox {
             id: methodCombo; Kirigami.FormData.label: i18n("Calculation Method:")
-            model: ["Shia Ithna-Ansari", "University of Islamic Sciences, Karachi", "Islamic Society of North America", "Muslim World League", "Umm Al-Qura University, Makkah", "Egyptian General Authority of Survey", "Institute of Geophysics, University of Tehran", "Gulf Region", "Kuwait", "Qatar", "Majlis Ugama Islam Singapura, Singapore", "Union Organization islamic de France", "Diyanet Isleri Baskanligi, Turkey", "Spiritual Administration of Muslims of Russia"]
+            model: ["Shia Ithna-Ansari", "University of Islamic Sciences, Karachi", "Islamic Society of North America", "Muslim World League", "Umm Al-Qura University, Makkah", "Egyptian General Authority of Survey", "Institute of Geophysics, University of Tehran", "Gulf Region", "Kuwait", "Qatar", "Majlis Ugama Islam Singapura, Singapore", "Union Organization islamic de France", "Diyanet Isleri Baskanligi, Turkey", "Spiritual Administration of Muslims of Russia", "Morocco"]
+        }
         }
         ComboBox { id: schoolCombo; Kirigami.FormData.label: i18n("School (Juristic):"); model: ["Shafi (Standard)", "Hanafi"] }
 
