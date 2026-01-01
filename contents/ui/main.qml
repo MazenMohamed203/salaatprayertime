@@ -1262,9 +1262,10 @@ PlasmoidItem {
 
     function fetchTimes() {
         let todayForAPI = getFormattedDate(new Date())
-        let method = Plasmoid.configuration.method || 4
+        let methodMap = [0, 1, 2, 3, 4, 5, 7, 8, 9, 10, 11, 12, 13, 14, 21];
+        let configIndex = (Plasmoid.configuration.method !== undefined) ? Plasmoid.configuration.method : 4;
+        let method = (methodMap[configIndex] !== undefined) ? methodMap[configIndex] : 4;
         let school = Plasmoid.configuration.school || 0
-
         let hijriAdj = Plasmoid.configuration.hijriOffset || 0
 
         let URL = ""
@@ -1321,7 +1322,9 @@ PlasmoidItem {
 
         if (daysSinceUpdate >= 5 || Object.keys(cachedData).length <= 1) {
             const year = now.getFullYear(); const month = now.getMonth() + 1
-            const method = (Plasmoid.configuration.method !== undefined) ? Plasmoid.configuration.method : 4
+            let methodMap = [0, 1, 2, 3, 4, 5, 7, 8, 9, 10, 11, 12, 13, 14, 21];
+            let configIndex = (Plasmoid.configuration.method !== undefined) ? Plasmoid.configuration.method : 4;
+            const method = (methodMap[configIndex] !== undefined) ? methodMap[configIndex] : 4;
             const school = (Plasmoid.configuration.school !== undefined) ? Plasmoid.configuration.school : 0
             let URL = ""
             if (root.useCoordinates && root.latitude && root.longitude) {
