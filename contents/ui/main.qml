@@ -12,8 +12,8 @@ import org.kde.plasma.core as PlasmaCore
 PlasmoidItem {
     id: root
 
-    Layout.minimumWidth: Kirigami.Units.gridUnit * 7
-    Layout.preferredWidth: Kirigami.Units.gridUnit * 7
+    Layout.minimumWidth: Kirigami.Units.gridUnit * 6.5
+    Layout.preferredWidth: Kirigami.Units.gridUnit * 6.5
     Plasmoid.backgroundHints: (Plasmoid.configuration.showBackground === undefined || Plasmoid.configuration.showBackground) ? PlasmaCore.Types.StandardBackground : PlasmaCore.Types.NoBackground
 
 
@@ -498,7 +498,7 @@ PlasmoidItem {
         onVisibleChanged: {
             if (visible && Object.keys(root.displayPrayerTimes).length > 0) root.highlightActivePrayer(root.displayPrayerTimes);
         }
-        implicitWidth: Kirigami.Units.gridUnit * 22
+        implicitWidth: Kirigami.Units.gridUnit * 23.3
 
         Column {
             width: parent.width
