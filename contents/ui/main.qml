@@ -252,7 +252,6 @@ PlasmoidItem {
         }
     }
 
-    // OPTIMIZATION: 10ms interval for Turbo-Seek
     Timer {
         id: retryTimer
         interval: 10
@@ -267,7 +266,6 @@ PlasmoidItem {
                 root.playerToRetry.source = currentUrl;
                 root.isRetrySeekPending = true;
 
-                // Turbo: Set Position BEFORE Play to force Range Request
                 root.playerToRetry.position = resumePos;
                 root.playerToRetry.play();
             }
@@ -862,7 +860,7 @@ PlasmoidItem {
     // LOGIC & HELPER FUNCTIONS
     // =========================================================================
 
-function playSpecificVerse(surahNum, ayahNum) {
+    function playSpecificVerse(surahNum, ayahNum) {
         if (root.isFetchingVerse) return;
         root.isFetchingVerse = true;
 
@@ -1193,17 +1191,14 @@ function playSpecificVerse(surahNum, ayahNum) {
             root.hijriDateDisplay = i18n("Date unavailable")
             root.currentHijriDay = 0; root.currentHijriMonth = 0; root.currentHijriYear = 0
         } else {
-            // 1. Get raw values from API
             let rawDay = parseInt(hijriDataObject.day, 10)
             let rawMonth = parseInt(hijriDataObject.month.number, 10)
             let rawYear = parseInt(hijriDataObject.year, 10)
 
-            // 2. Apply the Offset from Settings locally
             let offset = Plasmoid.configuration.hijriOffset || 0
             let adjustedDay = rawDay + offset
 
-            // 3. Handle simple rollovers (Assuming 30 days/month for safety)
-            // This ensures we don't show "31 Ramadan" or "0 Ramadan"
+
             if (adjustedDay > 30) {
                 adjustedDay -= 30
                 rawMonth += 1
@@ -1214,24 +1209,20 @@ function playSpecificVerse(surahNum, ayahNum) {
                 if (rawMonth < 1) { rawMonth = 12; rawYear -= 1 }
             }
 
-            // 4. Save to Root Properties
             root.currentHijriDay = adjustedDay
             root.currentHijriMonth = rawMonth
             root.currentHijriYear = rawYear
 
-            // 5. Get the Month Name (We can't use the API's string anymore because the month might have changed)
-            // We use a local array to ensure the name matches the new calculated month
+
             let arMonths = ["محرم", "صفر", "ربيع الأول", "ربيع الآخر", "جمادى الأولى", "جمادى الآخرة", "رجب", "شعبان", "رمضان", "شوال", "ذو القعدة", "ذو الحجة"]
             let enMonths = ["Muharram", "Safar", "Rabi Al-Awwal", "Rabi Al-Thani", "Jumada Al-Awwal", "Jumada Al-Thani", "Rajab", "Sha'ban", "Ramadan", "Shawwal", "Dhu Al-Qi'dah", "Dhu Al-Hijjah"]
 
-            // Adjust index (Month 1 is index 0)
             let mIndex = rawMonth - 1
             if (mIndex < 0) mIndex = 0
                 if (mIndex > 11) mIndex = 11
 
                     let monthName = (root.languageIndex === 1) ? arMonths[mIndex] : enMonths[mIndex]
 
-                    // 6. Display
                     root.hijriDateDisplay = `${root.currentHijriDay} ${monthName} ${root.currentHijriYear}`
         }
         updateSpecialIslamicDateMessage()
@@ -1507,7 +1498,6 @@ function playSpecificVerse(surahNum, ayahNum) {
                                 root.nextQueuedSurahNumber = arabicData.surah.number
                                 root.nextQueuedAyahNumber = arabicData.numberInSurah
 
-                                // OPTIMIZATION: Use HTTP to reduce TLS overhead and connection time
                                 let finalUrl = audioData.audio.replace("https:", "http:")
 
                                 if (audioData.numberInSurah === 1 && audioData.surah.number !== 1 && audioData.surah.number !== 9) {
