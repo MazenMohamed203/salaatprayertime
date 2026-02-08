@@ -862,7 +862,7 @@ PlasmoidItem {
     // LOGIC & HELPER FUNCTIONS
     // =========================================================================
 
-    function playSpecificVerse(surahNum, ayahNum) {
+function playSpecificVerse(surahNum, ayahNum) {
         if (root.isFetchingVerse) return;
         root.isFetchingVerse = true;
 
@@ -892,8 +892,21 @@ PlasmoidItem {
 
                             let finalUrl = audioData.audio.replace("https:", "http:")
 
+                            if (arabicData.numberInSurah === 1 && arabicData.surah.number !== 1 && arabicData.surah.number !== 9) {
+                                let baseUrl = finalUrl.substring(0, finalUrl.lastIndexOf('/'));
+                                let basmalahUrl = baseUrl + "/1.mp3";
+
+                                root.storedVerseUrlForAfterBasmalah = finalUrl;
+
+                                root.isPlayingBasmalahGap = true;
+
+                                playerA.source = basmalahUrl;
+                            } else {
+                                root.isPlayingBasmalahGap = false;
+                                playerA.source = finalUrl;
+                            }
+
                             root.continuousPlayActive = true
-                            playerA.source = finalUrl
                             playerA.play()
                             root.isPlayerA_the_active_verse_player = true
                         }
