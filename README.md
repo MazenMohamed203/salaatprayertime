@@ -33,5 +33,5 @@ You can click on the pause icon in the widget to pause and resume when Quran is 
 
 ---
 * *Developed by **Mazen**.*
-* *(Based on initial work by **Hamza Nasher-Alneam**, with thanks to **@ammar-elmesaly** and **@MrGueest** for their contributions to the original project).*
+* *(Based on initial work by **Hamza Nasher-Alneam**(https://github.com/necmettin1461/ezanvakti-widget), with thanks to **@ammar-elmesaly** and **@MrGueest** for their contributions to the original project).*
 * *(Thanks to **@EfeKaralar** and **@hadealahmad** for their contributions to this project).*
