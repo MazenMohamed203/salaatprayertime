@@ -5,7 +5,7 @@ import org.kde.kirigami as Kirigami
 import org.kde.plasma.components as PlasmaComponents
 import org.kde.plasma.plasmoid
 import org.kde.notification
-import Qt.labs.settings
+import QtCore
 import QtMultimedia
 import org.kde.plasma.core as PlasmaCore
 
@@ -83,6 +83,7 @@ PlasmoidItem {
     property string lastActivePrayer: ""
     property string activePrayer: ""
     property var preNotifiedPrayers: ({})
+    property var postNotifiedPrayers: ({})
 
     property int currentHijriDay: 0
     property int currentHijriMonth: 0
@@ -215,6 +216,7 @@ PlasmoidItem {
                 if (Object.keys(root.displayPrayerTimes).length > 0) {
                     root.highlightActivePrayer(root.displayPrayerTimes);
                     root.checkPreNotifications(root.displayPrayerTimes);
+                    root.checkPostNotifications(root.displayPrayerTimes);
                 } else if (Object.keys(root.times).length > 0) processRawTimesAndApplyOffsets();
             } else {
                 root.fetchTimes();
@@ -603,6 +605,7 @@ PlasmoidItem {
                 anchors.horizontalCenter: parent.horizontalCenter
                 width: parent.width - (parent.padding * 2)
                 text: root.languageIndex === 1 ? "القرآن الكريم" : "Quran"
+                visible: Plasmoid.configuration.enableQuran
                 onClicked: {
                     var dialog = quoteDialogComponent.createObject(fullView);
                     if (dialog) dialog.open();
@@ -1035,42 +1038,95 @@ PlasmoidItem {
     }
 
     function checkPreNotifications(currentTimingsToUse) {
-        if (!Plasmoid.configuration.preNotificationMinutes || Plasmoid.configuration.preNotificationMinutes <= 0) return
-            if (!currentTimingsToUse || !currentTimingsToUse.Fajr) return
+        if (!Plasmoid.configuration.preNotificationMinutes || Plasmoid.configuration.preNotificationMinutes <= 0) return;
+        if (!currentTimingsToUse || !currentTimingsToUse.Fajr) return;
 
-                const now = new Date()
-                const notificationWindow = Plasmoid.configuration.preNotificationMinutes
-                const prayerKeys = ["Fajr", "Dhuhr", "Asr", "Maghrib", "Isha"]
+        const now = new Date();
+        const notificationWindow = Plasmoid.configuration.preNotificationMinutes;
+        const prayerKeys = ["Fajr", "Dhuhr", "Asr", "Maghrib", "Isha"];
 
-                for (const prayerName of prayerKeys) {
-                    const prayerTimeStr = currentTimingsToUse[prayerName]
-                    if (!prayerTimeStr || prayerTimeStr === "--:--") continue
+        for (const prayerName of prayerKeys) {
+            const prayerTimeStr = currentTimingsToUse[prayerName];
+            if (!prayerTimeStr || prayerTimeStr === "--:--") continue;
 
-                        let prayerTime = parseTime(prayerTimeStr)
-                        if (prayerName === "Fajr" && prayerTime < now) prayerTime.setDate(prayerTime.getDate() + 1)
+            let prayerTime = parseTime(prayerTimeStr);
+            if (prayerName === "Fajr" && prayerTime < now) prayerTime.setDate(prayerTime.getDate() + 1);
 
-                            let diffMs = prayerTime.getTime() - now.getTime()
-                            const minutesUntil = Math.floor(diffMs / (1000 * 60))
+            let diffMs = prayerTime.getTime() - now.getTime();
+            const minutesUntil = Math.floor(diffMs / (1000 * 60));
 
-                            if (minutesUntil > 0 && minutesUntil <= notificationWindow) {
-                                const todayKey = getYYYYMMDD(now)
-                                const notificationKey = prayerName + "-" + todayKey
+            if (minutesUntil > 0 && minutesUntil <= notificationWindow) {
+                const todayKey = getYYYYMMDD(now);
+                const notificationKey = prayerName + "-" + todayKey;
 
-                                if (!root.preNotifiedPrayers[notificationKey]) {
-                                    var notification = notificationComponent.createObject(root)
-                                    notification.title = i18n("%1 in %2 minutes", getPrayerName(root.languageIndex, prayerName), minutesUntil)
-                                    notification.text = i18n("Prayer time reminder")
-                                    notification.eventId = "notification"
+                if (!root.preNotifiedPrayers[notificationKey]) {
+                    var notification = notificationComponent.createObject(root);
 
-                                    if (root.playPreAdhanSound) {
-                                        notification.hints = { "sound-name": "message-new-instant" }
-                                    }
+                    // Bilingual Pre-Adhan Logic
+                    if (root.languageIndex === 1) {
+                        notification.title = i18n("باقي %1 دقائق على صلاة %2", minutesUntil, getPrayerName(root.languageIndex, prayerName));
+                        notification.text = i18n("تذكير بقرب موعد الأذان");
+                    } else {
+                        notification.title = i18n("%1 in %2 minutes", getPrayerName(root.languageIndex, prayerName), minutesUntil);
+                        notification.text = i18n("Prayer time reminder");
+                    }
 
-                                    notification.sendEvent()
-                                    root.preNotifiedPrayers[notificationKey] = true
-                                }
-                            }
+                    notification.eventId = "notification";
+                    if (root.playPreAdhanSound) {
+                        notification.hints = { "sound-name": "message-new-instant" };
+                    }
+
+                    notification.sendEvent();
+                    root.preNotifiedPrayers[notificationKey] = true;
                 }
+            }
+        }
+    }
+
+    function checkPostNotifications(currentTimingsToUse) {
+        if (!Plasmoid.configuration.postNotificationMinutes || Plasmoid.configuration.postNotificationMinutes <= 0) return;
+        if (!currentTimingsToUse || !currentTimingsToUse.Fajr) return;
+
+        const now = new Date();
+        const notificationWindow = Plasmoid.configuration.postNotificationMinutes;
+        const prayerKeys = ["Fajr", "Dhuhr", "Asr", "Maghrib", "Isha"];
+
+        for (const prayerName of prayerKeys) {
+            const prayerTimeStr = currentTimingsToUse[prayerName];
+            if (!prayerTimeStr || prayerTimeStr === "--:--") continue;
+
+            let prayerTime = parseTime(prayerTimeStr);
+            if (now < prayerTime) continue;
+
+            let diffMs = now.getTime() - prayerTime.getTime();
+            const minutesSince = Math.floor(diffMs / (1000 * 60));
+
+            if (minutesSince === notificationWindow) {
+                const todayKey = getYYYYMMDD(now);
+                const notificationKey = prayerName + "-post-" + todayKey;
+
+                if (!root.postNotifiedPrayers[notificationKey]) {
+                    var notification = notificationComponent.createObject(root);
+
+                    // Adjusted to focus on Iqamah and fixed pluralization
+                    if (root.languageIndex === 1) {
+                        notification.title = i18n("مرت %1 دقائق على صلاة %2", notificationWindow, getPrayerName(root.languageIndex, prayerName));
+                        notification.text = i18n("تذكير: موعد الإقامة");
+                    } else {
+                        notification.title = i18n("%1 was %2 minutes ago", getPrayerName(root.languageIndex, prayerName), notificationWindow);
+                        notification.text = i18n("Reminder: Time for Iqamah");
+                    }
+
+                    notification.eventId = "notification";
+                    if (Plasmoid.configuration.playPostAdhanSound) {
+                        notification.hints = { "sound-name": "message-new-instant" };
+                    }
+
+                    notification.sendEvent();
+                    root.postNotifiedPrayers[notificationKey] = true;
+                }
+            }
+        }
     }
 
     function highlightActivePrayer(currentTimingsToUse) {
@@ -1106,7 +1162,9 @@ PlasmoidItem {
                 }
     }
 
-    function resetPreNotifications() { root.preNotifiedPrayers = {} }
+    function resetPreNotifications() { root.preNotifiedPrayers = {}
+        root.postNotifiedPrayers = {};
+    }
     function getYYYYMMDD(dateObj) {
         let year = dateObj.getFullYear()
         let month = String(dateObj.getMonth() + 1).padStart(2, '0')
