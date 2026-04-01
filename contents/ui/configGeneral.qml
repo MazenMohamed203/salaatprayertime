@@ -168,7 +168,14 @@ KCM.SimpleKCM {
 
         ComboBox {
             id: compactStyleCombo; Kirigami.FormData.label: i18n("Compact View Style:")
-            model: [i18n("Vertical (Standard)"), i18n("Side-by-Side"), i18n("Toggle View"), i18n("Horizontal (Single Line)")]
+            model: [
+                i18n("Vertical (Standard)"),
+                i18n("Side-by-Side"),
+                i18n("Toggle View"),
+                i18n("Compact Toggle"),
+                i18n("Horizontal (Single Line)"),
+                i18n("Horizontal (Remaining Time)")
+            ]
         }
         ComboBox {
             id: languageCombo;

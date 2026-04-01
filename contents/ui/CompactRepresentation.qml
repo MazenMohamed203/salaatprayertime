@@ -17,7 +17,8 @@ Item {
     property real customFontSize: Kirigami.Theme.defaultFont.pointSize * 1.05
 
     property real baseWidth: (compactStyle === 1) ? Kirigami.Units.gridUnit * 7.5 :
-    (compactStyle === 3) ? Kirigami.Units.gridUnit * 9.5 :
+    (compactStyle === 3 || compactStyle === 5) ? Kirigami.Units.gridUnit * 9.5 :
+    (compactStyle === 4) ? Kirigami.Units.gridUnit * 8.5 :
     Kirigami.Units.gridUnit * 7.5
 
     implicitWidth: showMediaBtn ? baseWidth + Kirigami.Units.iconSizes.small + Kirigami.Units.smallSpacing : baseWidth
@@ -47,6 +48,10 @@ Item {
 
     function getTimeLeftText() {
         return (languageIndex === 1) ? "الوقت المتبقي:" : i18n("Time Left:");
+    }
+
+    function getCompactRemainingWord() {
+        return (languageIndex === 1) ? "متبقي" : "left";
     }
 
     // --- Helper function to parse time string to Date object ---
@@ -116,7 +121,7 @@ Item {
     Timer {
         id: toggleTimer
         interval: 18000
-        running: root.compactStyle === 2
+        running: root.compactStyle === 2 || root.compactStyle === 4
         repeat: true
         onTriggered: {
             root.toggleViewIsPrayerTime = false;
@@ -223,6 +228,8 @@ Item {
         currentIndex: {
             if (root.compactStyle === 1) return 1; // Countdown view
             if (root.compactStyle === 3) return 2; // Horizontal view
+            if (root.compactStyle === 4) return 3; // Compact Toggle view
+            if (root.compactStyle === 5) return 4; // Horizontal remaining time
             return 0; // Normal & Toggle view
         }
 
@@ -331,6 +338,76 @@ Item {
 
                 font.weight: root.isPrePrayerAlertActive ? Font.Bold : Font.Medium
                 text: root.nextPrayerTime
+            }
+        }
+
+        // Item 3: Compact Toggle (horizontal prayer/time, then compact remaining mode)
+        RowLayout {
+            id: compactToggleView
+            spacing: Kirigami.Units.smallSpacing
+            anchors.centerIn: parent
+
+            Label {
+                Layout.alignment: Qt.AlignVCenter
+                horizontalAlignment: Text.AlignRight
+
+                font.pointSize: root.customFontSize
+
+                color: root.isPrePrayerAlertActive ?
+                Qt.rgba(Kirigami.Theme.textColor.r, Kirigami.Theme.textColor.g, Kirigami.Theme.textColor.b, 0.9) :
+                Kirigami.Theme.textColor
+
+                font.weight: root.isPrePrayerAlertActive ? Font.Bold : Font.Medium
+                text: (root.toggleViewIsPrayerTime ? root.nextPrayerName : getCompactRemainingWord())
+            }
+
+            Label {
+                Layout.alignment: Qt.AlignVCenter
+                horizontalAlignment: Text.AlignLeft
+
+                font.pointSize: root.customFontSize
+
+                color: root.isPrePrayerAlertActive ?
+                Qt.rgba(Kirigami.Theme.textColor.r, Kirigami.Theme.textColor.g, Kirigami.Theme.textColor.b, 0.9) :
+                Kirigami.Theme.textColor
+
+                font.weight: root.isPrePrayerAlertActive ? Font.Bold : Font.Medium
+                text: (root.toggleViewIsPrayerTime ? root.nextPrayerTime : root.countdownText.substring(0, 5))
+            }
+        }
+
+        // Item 4: Horizontal (Remaining Time)
+        RowLayout {
+            id: horizontalRemainingView
+            spacing: Kirigami.Units.smallSpacing
+            anchors.centerIn: parent
+
+            Label {
+                Layout.alignment: Qt.AlignVCenter
+                horizontalAlignment: Text.AlignRight
+
+                font.pointSize: root.customFontSize
+
+                color: root.isPrePrayerAlertActive ?
+                Qt.rgba(Kirigami.Theme.textColor.r, Kirigami.Theme.textColor.g, Kirigami.Theme.textColor.b, 0.9) :
+                Kirigami.Theme.textColor
+
+                font.weight: root.isPrePrayerAlertActive ? Font.Bold : Font.Medium
+                text: root.nextPrayerName
+            }
+
+            Label {
+                Layout.alignment: Qt.AlignVCenter
+                horizontalAlignment: Text.AlignLeft
+
+                font.pointSize: root.customFontSize
+
+                color: root.isPrePrayerAlertActive ?
+                Qt.rgba(Kirigami.Theme.textColor.r, Kirigami.Theme.textColor.g, Kirigami.Theme.textColor.b, 0.9) :
+                Kirigami.Theme.textColor
+
+                font.weight: root.isPrePrayerAlertActive ? Font.Bold : Font.Medium
+                text: root.countdownText.substring(0, 5)
             }
         }
     }
