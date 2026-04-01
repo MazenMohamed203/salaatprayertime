@@ -27,8 +27,8 @@ Quran api from [Quran API](https://alquran.cloud/api).
 ## Installation
 * Just download from [Kde Store](https://store.kde.org/p/2293509/).
 * Or download the tar.gz file from the releases
-* Install in the terminal : kpackagetool6 --type Plasma/Applet --install path/to/com.github.mazen.salatprayertime.tar.gz
-* Or Install from plasma gui by write clicking on taskbar and clicking add or manage widgets, then at the top of the screen click get new, install from local file and select the tar.gz file
+* Install in the terminal :``` bash kpackagetool6 --type Plasma/Applet --install path/to/com.github.mazen.salatprayertime.tar.gz
+* Or Install from plasma gui by right clicking on the taskbar and clicking add or manage widgets, then at the top of the screen click get new, install from local file and select the tar.gz file
 ![Install guide](Install.png)
 
 ## Configuration
