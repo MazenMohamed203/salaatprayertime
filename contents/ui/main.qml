@@ -8,6 +8,7 @@ import org.kde.notification
 import QtCore
 import QtMultimedia
 import org.kde.plasma.core as PlasmaCore
+import "Constants.js" as Logic
 
 PlasmoidItem {
     id: root
@@ -23,37 +24,7 @@ PlasmoidItem {
     // PROPERTIES & DATA
     // =========================================================================
 
-    property var surahData: [
-        ["Al-Fatiha", "الفاتحة", 7], ["Al-Baqarah", "البقرة", 286], ["Al-Imran", "آل عمران", 200], ["An-Nisa", "النساء", 176],
-        ["Al-Ma'idah", "المائدة", 120], ["Al-An'am", "الأنعام", 165], ["Al-A'raf", "الأعراف", 206], ["Al-Anfal", "الأنفال", 75],
-        ["At-Tawbah", "التوبة", 129], ["Yunus", "يونس", 109], ["Hud", "هود", 123], ["Yusuf", "يوسف", 111],
-        ["Ar-Ra'd", "الرعد", 43], ["Ibrahim", "إبراهيم", 52], ["Al-Hijr", "الحجر", 99], ["An-Nahl", "النحل", 128],
-        ["Al-Isra", "الإسراء", 111], ["Al-Kahf", "الكهف", 110], ["Maryam", "مريم", 98], ["Ta-Ha", "طه", 135],
-        ["Al-Anbiya", "الأنبياء", 112], ["Al-Hajj", "الحج", 78], ["Al-Mu'minun", "المؤمنون", 118], ["An-Nur", "النور", 64],
-        ["Al-Furqan", "الفرقان", 77], ["Ash-Shu'ara", "الشعراء", 227], ["An-Naml", "النمل", 93], ["Al-Qasas", "القصص", 88],
-        ["Al-Ankabut", "العنكبوت", 69], ["Ar-Rum", "الروم", 60], ["Luqman", "لقمان", 34], ["As-Sajdah", "السجدة", 30],
-        ["Al-Ahzab", "الأحزاب", 73], ["Saba", "سبأ", 54], ["Fatir", "فاطر", 45], ["Ya-Sin", "يس", 83],
-        ["As-Saffat", "الصافات", 182], ["Sad", "ص", 88], ["Az-Zumar", "الزمر", 75], ["Ghafir", "غافر", 85],
-        ["Fussilat", "فصلت", 54], ["Ash-Shura", "الشورى", 53], ["Az-Zukhruf", "الزخرف", 89], ["Ad-Dukhan", "الدخان", 59],
-        ["Al-Jathiyah", "الجاثية", 37], ["Al-Ahqaf", "الأحقاف", 35], ["Muhammad", "محمد", 38], ["Al-Fath", "الفتح", 29],
-        ["Al-Hujurat", "الحجرات", 18], ["Qaf", "ق", 45], ["Ad-Dhariyat", "الذاريات", 60], ["At-Tur", "الطور", 49],
-        ["An-Najm", "النجم", 62], ["Al-Qamar", "القمر", 55], ["Ar-Rahman", "الرحمن", 78], ["Al-Waqi'ah", "الواقعة", 96],
-        ["Al-Hadid", "الحديد", 29], ["Al-Mujadila", "المجادلة", 22], ["Al-Hashr", "الحشر", 24], ["Al-Mumtahanah", "الممتحنة", 13],
-        ["As-Saff", "الصف", 14], ["Al-Jumu'ah", "الجمعة", 11], ["Al-Munafiqun", "المنافقون", 11], ["At-Taghabun", "التغابن", 18],
-        ["At-Talaq", "الطلاق", 12], ["At-Tahrim", "التحريم", 12], ["Al-Mulk", "الملك", 30], ["Al-Qalam", "القلم", 52],
-        ["Al-Haqqah", "الحاقة", 52], ["Al-Ma'arij", "المعارج", 44], ["Nuh", "نوح", 28], ["Al-Jinn", "الجن", 28],
-        ["Al-Muzzammil", "المزمل", 20], ["Al-Muddaththir", "المدثر", 56], ["Al-Qiyamah", "القيامة", 40], ["Al-Insan", "الإنسان", 31],
-        ["Al-Mursalat", "المرسلات", 50], ["An-Naba", "النبأ", 40], ["An-Nazi'at", "النازعات", 46], ["Abasa", "عبس", 42],
-        ["At-Takwir", "التكوير", 29], ["Al-Infitar", "الانفطار", 19], ["Al-Mutaffifin", "المطففين", 36], ["Al-Inshiqaq", "الانشقاق", 25],
-        ["Al-Buruj", "البروج", 22], ["At-Tariq", "الطارق", 17], ["Al-A'la", "الأعلى", 19], ["Al-Ghashiyah", "الغاشية", 26],
-        ["Al-Fajr", "الفجر", 30], ["Al-Balad", "البلد", 20], ["Ash-Shams", "الشمس", 15], ["Al-Layl", "الليل", 21],
-        ["Ad-Duha", "الضحى", 11], ["Ash-Sharh", "الشرح", 8], ["At-Tin", "التين", 8], ["Al-Alaq", "العلق", 19],
-        ["Al-Qadr", "القدر", 5], ["Al-Bayyinah", "البينة", 8], ["Az-Zalzalah", "الزلزلة", 8], ["Al-Adiyat", "العاديات", 11],
-        ["Al-Qari'ah", "القارعة", 11], ["At-Takathur", "التكاثر", 8], ["Al-Asr", "العصر", 3], ["Al-Humazah", "الهمزة", 9],
-        ["Al-Fil", "الفيل", 5], ["Quraysh", "قريش", 4], ["Al-Ma'un", "الماعون", 7], ["Al-Kawthar", "الكوثر", 3],
-        ["Al-Kafirun", "الكافرون", 6], ["An-Nasr", "النصر", 3], ["Al-Masad", "المسد", 5], ["Al-Ikhlas", "الإخلاص", 4],
-        ["Al-Falaq", "الفلق", 5], ["An-Nas", "الناس", 6]
-    ]
+    property var surahData: Logic.surahData
 
     // --- Widget State ---
     property var times: ({})
@@ -155,26 +126,9 @@ PlasmoidItem {
         return (customPath === "") ? defaultAdhanPath : customPath
     }
 
-    property var quranReciterIdentifiers: [
-        "ar.minshawi", "ar.alafasy", "ar.husary", "ar.abdurrahmaansudais",
-        "ar.mahermuaiqly", "ar.shaatree", "ar.abdullahbasfar",
-        "ar.abdulbasitmurattal", "ar.hudhaify", "ar.muhammadjibreel",
-        "ar.husarymujawwad", "ar.minshawimujawwad", "ar.ahmedajamy"
-    ]
-
-    property var quranReciterNames: [
-        i18n("Minshawi (Murattal)"), i18n("Alafasy"), i18n("Husary (Murattal)"),
-        i18n("Abdurrahmaan As-Sudais"), i18n("Maher Al Muaiqly"), i18n("Abu Bakr Ash-Shaatree"),
-        i18n("Abdullah Basfar"), i18n("Abdulbasit (Murattal)"), i18n("Hudhaify"), i18n("Muhammad Jibreel"),
-        i18n("Husary (Mujawwad)"), i18n("Minshawi (Mujawwad)"), i18n("Ahmed ibn Ali al-Ajamy")
-    ]
-
-    property var quranReciterNames_ar: [
-        "المنشاوي (مرتل)", "العفاسي", "الحصري (مرتل)", "عبد الرحمن السديس",
-        "ماهر المعيقلي", "أبو بكر الشاطري", "عبد الله بصفر", "عبد الباسط (مرتل)",
-        "الحذيفي", "محمد جبريل",
-        "الحصري (مجود)", "المنشاوي (مجود)", "أحمد بن علي العجمي"
-    ]
+    property var quranReciterIdentifiers: Logic.quranReciterIdentifiers
+    property var quranReciterNames: Logic.quranReciterNames
+    property var quranReciterNames_ar: Logic.quranReciterNames_ar
 
     property int quranReciterIndex: Plasmoid.configuration.quranReciterIndex || 0
     property string activeReciterIdentifier: quranReciterIdentifiers[quranReciterIndex]
@@ -240,7 +194,7 @@ PlasmoidItem {
                 let totalMinutes = Math.floor(diffMs / (1000 * 60));
                 let hours = Math.floor(totalMinutes / 60);
                 let minutes = totalMinutes % 60;
-                root.timeUntilNextPrayer = String(hours).padStart(2, '0') + ":" + String(minutes).padStart(2, '0');
+                root.timeUntilNextPrayer = root.toNativeDigits(String(hours).padStart(2, '0') + ":" + String(minutes).padStart(2, '0'));
             }
         }
     }
@@ -572,24 +526,26 @@ PlasmoidItem {
                 model: ["Fajr", "Sunrise", "Dhuhr", "Asr", "Maghrib", "Isha"]
                 delegate: Rectangle {
                     width: parent.width - (Kirigami.Units.largeSpacing * 2)
-                    height: Kirigami.Units.gridUnit * 2.0
+                    height: Kirigami.Units.gridUnit * 2.3
                     radius: 8
                     color: root.activePrayer === modelData ? Kirigami.Theme.highlightColor : "transparent"
                     RowLayout {
                         anchors.fill: parent
+                        LayoutMirroring.enabled: root.languageIndex === 1
+                        LayoutMirroring.childrenInherit: true
                         anchors.leftMargin: Kirigami.Units.largeSpacing
                         anchors.rightMargin: Kirigami.Units.largeSpacing
                         Label {
-                            text: getPrayerName(root.languageIndex, modelData)
+                            text: getPrayerName(root.languageIndex, modelData) + " " + (Logic.prayerEmojis[modelData] || "")
                             color: parent.parent.color === Kirigami.Theme.highlightColor ? Kirigami.Theme.highlightedTextColor : Kirigami.Theme.textColor
                             font.weight: Font.Bold
-                            font.pointSize: Kirigami.Theme.defaultFont.pointSize
+                            font.pointSize: Kirigami.Theme.defaultFont.pointSize + 3
                         }
                         Item { Layout.fillWidth: true }
                         Label {
                             text: root.to12HourTime(root.displayPrayerTimes[modelData], Plasmoid.configuration.hourFormat)
                             color: parent.parent.color === Kirigami.Theme.highlightColor ? Kirigami.Theme.highlightedTextColor : Kirigami.Theme.textColor
-                            font.pointSize: Kirigami.Theme.defaultFont.pointSize
+                            font.pointSize: Kirigami.Theme.defaultFont.pointSize + 2
                         }
                     }
                 }
@@ -607,9 +563,19 @@ PlasmoidItem {
                 text: root.languageIndex === 1 ? "القرآن الكريم" : "Quran"
                 visible: Plasmoid.configuration.enableQuran
                 onClicked: {
-                    var dialog = quoteDialogComponent.createObject(fullView);
-                    if (dialog) dialog.open();
-                    else console.error("Failed to create dialog");
+                    var quranComp = Qt.createComponent("QuranDialog.qml");
+                    if (quranComp.status === Component.Ready) {
+                        var dialog = quranComp.createObject(fullView, {
+                            widgetRoot: root,
+                            playerA: playerA,
+                            playerB: playerB,
+                            adhanStopTimer: adhanStopTimer
+                        });
+                        if (dialog) dialog.open();
+                        else console.error("Failed to create Quran dialog");
+                    } else if (quranComp.status === Component.Error) {
+                        console.error("Error loading Quran Dialog component:", quranComp.errorString());
+                    }
                 }
             }
         }
@@ -619,245 +585,7 @@ PlasmoidItem {
     // POPUP DIALOG
     // =========================================================================
 
-    Component {
-        id: quoteDialogComponent
-        Dialog {
-            id: dialog
-            title: (root.languageIndex === 1 ? "القرآن الكريم" : "Quran Player") + " (" + root.activeReciterName + ")"
-            modal: true
-            standardButtons: Dialog.Close
-            property int dialogWidth: Kirigami.Units.gridUnit * 22
-            width: dialogWidth
-            padding: Kirigami.Units.largeSpacing
-
-            Connections {
-                target: root
-                function onCurrentSurahNumberChanged() {
-                    let idx = root.currentSurahNumber - 1
-                    if (idx >= 0 && idx < surahCombo.count && surahCombo.currentIndex !== idx) {
-                        surahCombo.currentIndex = idx
-                        verseSpin.to = root.surahData[idx][2]
-                    }
-                }
-                function onCurrentAyahNumberChanged() {
-                    if (verseSpin.value !== root.currentAyahNumber) {
-                        verseSpin.value = root.currentAyahNumber
-                    }
-                }
-            }
-
-            contentItem: ScrollView {
-                id: scroller
-                width: dialog.width - (dialog.padding * 2)
-                Layout.maximumHeight: Kirigami.Units.gridUnit * 40
-                ScrollBar.vertical.policy: ScrollBar.AsNeeded
-                ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
-                clip: true
-
-                ColumnLayout {
-                    width: scroller.availableWidth
-                    spacing: Kirigami.Units.largeSpacing
-
-                    RowLayout {
-                        Layout.fillWidth: true
-                        spacing: Kirigami.Units.smallSpacing
-
-                        ComboBox {
-                            id: surahCombo
-                            Layout.fillWidth: true
-                            Layout.preferredWidth: 2
-                            model: root.surahData.map(function(s, index) {
-                                let surahNum = index + 1
-                                return (root.languageIndex === 1) ? (surahNum + ". " + s[1]) : (surahNum + ". " + s[0])
-                            })
-
-                            onActivated: {
-                                verseSpin.to = root.surahData[currentIndex][2]
-                                verseSpin.value = 1
-                            }
-
-                            delegate: ItemDelegate {
-                                width: parent.width
-                                contentItem: Text {
-                                    text: modelData
-                                    font: parent.font
-                                    color: Kirigami.Theme.textColor
-                                    elide: Text.ElideRight
-                                    verticalAlignment: Text.AlignVCenter
-                                }
-                                highlighted: ComboBox.isCurrentItem
-                            }
-
-                            popup.background: Rectangle {
-                                color: Kirigami.Theme.backgroundColor
-                                border.color: Kirigami.Theme.frameColor
-                                border.width: 1
-                                radius: 2
-                            }
-
-                            Component {
-                                id: myDelegateComponent
-                                ItemDelegate {
-                                    id: delegateItem
-                                    width: (surahCombo) ? surahCombo.width : 200
-                                    highlighted: ListView.isCurrentItem || false
-                                    contentItem: Text {
-                                        text: modelData
-                                        font: parent.font
-                                        color: delegateItem.highlighted ? (Kirigami.Theme.highlightedTextColor || "white") : (Kirigami.Theme.textColor || "black")
-                                        elide: Text.ElideRight
-                                        verticalAlignment: Text.AlignVCenter
-                                    }
-                                    background: Rectangle {
-                                        color: delegateItem.highlighted ? (Kirigami.Theme.highlightColor || "blue") : "transparent"
-                                        radius: 2
-                                    }
-                                }
-                            }
-                            Component.onCompleted: {
-                                if (popup && popup.contentItem) {
-                                    try { popup.contentItem.delegate = myDelegateComponent } catch (e) {}
-                                }
-                            }
-                        }
-
-                        SpinBox {
-                            id: verseSpin
-                            Layout.preferredWidth: Kirigami.Units.gridUnit * 5
-                            from: 1
-                            to: 7
-                            value: 1
-                            editable: true
-                        }
-                    }
-
-                    RowLayout {
-                        Layout.fillWidth: true
-                        spacing: Kirigami.Units.smallSpacing
-
-                        Button {
-                            Layout.fillWidth: true
-                            text: root.languageIndex === 1 ? i18n("تشغيل") : i18n("Play")
-                            icon.name: "media-playback-start"
-                            enabled: !root.isAnyAudioPlaying && !root.isFetchingVerse
-                            onClicked: {
-                                root.continuousPlayActive = false
-                                root.isAdhanPlaying = false
-                                root.isPlayingBasmalahGap = false
-                                root.nextTrackIsBasmalah = false
-                                adhanStopTimer.stop()
-                                playerA.stop(); playerB.stop()
-
-                                let surahIndex = surahCombo.currentIndex + 1
-                                let ayahIndex = verseSpin.value
-                                playSpecificVerse(surahIndex, ayahIndex)
-                            }
-                        }
-
-                        Button {
-                            Layout.fillWidth: true
-                            property var activePlayer: root.isPlayerA_the_active_verse_player ? playerA : playerB
-                            text: activePlayer.playbackState === MediaPlayer.PlayingState ? (root.languageIndex === 1 ? i18n("إيقاف مؤقت") : i18n("Pause")) : (root.languageIndex === 1 ? i18n("استئناف") : i18n("Resume"))
-                            icon.name: activePlayer.playbackState === MediaPlayer.PlayingState ? "media-playback-pause" : "media-playback-start"
-                            enabled: (activePlayer.playbackState === MediaPlayer.PlayingState || activePlayer.playbackState === MediaPlayer.PausedState)
-                            onClicked: root.togglePlayback()
-                        }
-                    }
-
-                    RowLayout {
-                        Layout.fillWidth: true
-                        spacing: Kirigami.Units.smallSpacing
-                        Label {
-                            property var activePlayer: root.isPlayerA_the_active_verse_player ? playerA : playerB
-                            text: formatTime(activePlayer.position)
-                            font.pointSize: Kirigami.Theme.smallFont.pointSize
-                        }
-                        Slider {
-                            Layout.fillWidth: true
-                            property var activePlayer: root.isPlayerA_the_active_verse_player ? playerA : playerB
-                            from: 0
-                            to: activePlayer.duration > 0 ? activePlayer.duration : 1
-                            value: activePlayer.position
-                            onMoved: activePlayer.position = value
-                            Connections {
-                                target: root
-                                function onIsPlayerA_the_active_verse_playerChanged() {
-                                    parent.activePlayer = root.isPlayerA_the_active_verse_player ? playerA : playerB;
-                                }
-                            }
-                        }
-                        Label {
-                            property var activePlayer: root.isPlayerA_the_active_verse_player ? playerA : playerB
-                            text: formatTime(activePlayer.duration)
-                            font.pointSize: Kirigami.Theme.smallFont.pointSize
-                        }
-                    }
-
-                    RowLayout {
-                        Layout.fillWidth: true
-                        spacing: Kirigami.Units.smallSpacing
-                        Kirigami.Icon {
-                            source: "audio-volume-medium"
-                            Layout.preferredWidth: Kirigami.Units.iconSizes.smallMedium
-                            Layout.alignment: Qt.AlignVCenter
-                        }
-                        Slider {
-                            id: verseVolumeSlider
-                            Layout.fillWidth: true
-                            Layout.alignment: Qt.AlignVCenter
-                            from: 0.0; to: 1.0; stepSize: 0.05
-                            value: root.quranVolume
-                            onValueChanged: root.quranVolume = value
-                        }
-                        Label {
-                            text: Math.round(verseVolumeSlider.value * 100) + "%"
-                            Layout.alignment: Qt.AlignVCenter
-                            font.pointSize: Kirigami.Theme.smallFont.pointSize
-                        }
-                    }
-
-                    Label {
-                        text: root.dailyVerseArabic
-                        font.pointSize: Kirigami.Theme.defaultFont.pointSize + 2
-                        font.weight: Font.Medium
-                        font.family: "Noto Sans Arabic"
-                        Layout.fillWidth: true
-                        horizontalAlignment: Text.AlignHCenter
-                        wrapMode: Text.WordWrap
-                        color: Kirigami.Theme.textColor
-                    }
-                    Label {
-                        text: root.dailyVerseTranslation
-                        font.pointSize: Kirigami.Theme.defaultFont.pointSize
-                        font.italic: true
-                        Layout.fillWidth: true
-                        horizontalAlignment: Text.AlignHCenter
-                        wrapMode: Text.WordWrap
-                        opacity: 0.9
-                        color: Kirigami.Theme.textColor
-                    }
-                    Label {
-                        text: root.dailyVerseReference
-                        font.pointSize: Kirigami.Theme.smallFont.pointSize
-                        opacity: 0.7
-                        Layout.fillWidth: true
-                        wrapMode: Text.WordWrap
-                        horizontalAlignment: Text.AlignHCenter
-                        color: Kirigami.Theme.textColor
-                    }
-                }
-            }
-
-            Component.onCompleted: {
-                let sIndex = root.currentSurahNumber - 1
-                if (sIndex < 0) sIndex = 0
-                    if (sIndex > 113) sIndex = 113
-                        surahCombo.currentIndex = sIndex
-                        verseSpin.to = root.surahData[sIndex][2]
-                        verseSpin.value = root.currentAyahNumber
-            }
-        }
-    }
+    // Moved quoteDialogComponent into QuranDialog.qml
 
     // =========================================================================
     // LOGIC & HELPER FUNCTIONS
@@ -869,7 +597,23 @@ PlasmoidItem {
 
         console.log("Fetching Surah " + surahNum + " Verse " + ayahNum)
         let targetReciter = root.activeReciterIdentifier
-        let URL = `https://api.alquran.cloud/v1/ayah/${surahNum}:${ayahNum}/editions/quran-uthmani,en.sahih,${targetReciter}`
+        
+        let finalUrl = getPredictableAudioUrl(targetReciter, surahNum, ayahNum)
+        if (ayahNum === 1 && surahNum !== 1 && surahNum !== 9) {
+            let basmalahUrl = getPredictableAudioUrl(targetReciter, 1, 1);
+            root.storedVerseUrlForAfterBasmalah = finalUrl;
+            root.isPlayingBasmalahGap = true;
+            playerA.source = basmalahUrl;
+        } else {
+            root.isPlayingBasmalahGap = false;
+            playerA.source = finalUrl;
+        }
+
+        root.continuousPlayActive = true;
+        root.isPlayerA_the_active_verse_player = true;
+        playerA.play();
+
+        let URL = `https://api.alquran.cloud/v1/ayah/${surahNum}:${ayahNum}/editions/quran-uthmani,en.sahih`
 
         let xhr = new XMLHttpRequest()
         xhr.onreadystatechange = function() {
@@ -880,38 +624,17 @@ PlasmoidItem {
                         let data = JSON.parse(xhr.responseText).data
                         let arabicData = data.find(ed => ed.edition.identifier === "quran-uthmani")
                         let translationData = data.find(ed => ed.edition.identifier === "en.sahih")
-                        let audioData = data.find(ed => ed.edition.identifier === targetReciter)
 
-                        if (audioData && arabicData) {
+                        if (arabicData) {
                             root.dailyVerseArabic = arabicData.text
-                            root.dailyVerseTranslation = translationData.text
+                            root.dailyVerseTranslation = translationData ? translationData.text : ""
                             root.dailyVerseReference = "Surah " + arabicData.surah.englishName + " (" + arabicData.surah.number + ":" + arabicData.numberInSurah + ")"
                             root.dailyVerseGlobalAyahNumber = arabicData.number
 
                             root.currentSurahNumber = arabicData.surah.number
                             root.currentAyahNumber = arabicData.numberInSurah
-
-                            let finalUrl = audioData.audio.replace("https:", "http:")
-
-                            if (arabicData.numberInSurah === 1 && arabicData.surah.number !== 1 && arabicData.surah.number !== 9) {
-                                let baseUrl = finalUrl.substring(0, finalUrl.lastIndexOf('/'));
-                                let basmalahUrl = baseUrl + "/1.mp3";
-
-                                root.storedVerseUrlForAfterBasmalah = finalUrl;
-
-                                root.isPlayingBasmalahGap = true;
-
-                                playerA.source = basmalahUrl;
-                            } else {
-                                root.isPlayingBasmalahGap = false;
-                                playerA.source = finalUrl;
-                            }
-
-                            root.continuousPlayActive = true
-                            playerA.play()
-                            root.isPlayerA_the_active_verse_player = true
                         }
-                    } catch (e) { console.log("Error parsing specific verse:", e.toString()) }
+                    } catch (e) { console.log("Error parsing specific verse text:", e.toString()) }
                 }
             }
         }
@@ -919,14 +642,20 @@ PlasmoidItem {
     }
 
     function formatTime(ms) {
-        if (ms <= 0) return "00:00"
+        if (ms <= 0) return root.toNativeDigits("00:00")
             let totalSeconds = Math.floor(ms / 1000)
             let minutes = Math.floor(totalSeconds / 60)
             let seconds = totalSeconds % 60
-            return String(minutes).padStart(2, '0') + ":" + String(seconds).padStart(2, '0')
+            return root.toNativeDigits(String(minutes).padStart(2, '0') + ":" + String(seconds).padStart(2, '0'))
     }
 
     function initCache() { console.log("Prayer Times Widget: Cache initialized.") }
+
+    function toNativeDigits(numStr) {
+        if (root.languageIndex !== 1 || !Plasmoid.configuration.useArabicNumbers) return numStr;
+        let arabicDigits = ["٠", "١", "٢", "٣", "٤", "٥", "٦", "٧", "٨", "٩"];
+        return String(numStr).replace(/[0-9]/g, function(w) { return arabicDigits[+w]; });
+    }
 
     function to12HourTime(timeString, isActive) {
         if (!timeString || timeString === "--:--") return "--:--"
@@ -934,11 +663,11 @@ PlasmoidItem {
                 let parts = timeString.split(':')
                 let hours = parseInt(parts[0], 10)
                 let minutes = parseInt(parts[1], 10)
-                let period = hours >= 12 ? i18n("PM") : i18n("AM")
+                let period = hours >= 12 ? (root.languageIndex === 1 ? "م" : "PM") : (root.languageIndex === 1 ? "ص" : "AM")
                 hours = hours % 12 || 12
-                return `${hours}:${String(minutes).padStart(2, '0')} ${period}`
+                return root.toNativeDigits(`${hours}:${String(minutes).padStart(2, '0')}`) + ` ${period}`
             }
-            return timeString
+            return root.toNativeDigits(timeString)
     }
 
     function parseTime(timeString) {
@@ -1281,7 +1010,7 @@ PlasmoidItem {
 
                     let monthName = (root.languageIndex === 1) ? arMonths[mIndex] : enMonths[mIndex]
 
-                    root.hijriDateDisplay = `${root.currentHijriDay} ${monthName} ${root.currentHijriYear}`
+                    root.hijriDateDisplay = root.toNativeDigits(root.currentHijriDay) + ` ${monthName} ` + root.toNativeDigits(root.currentHijriYear)
         }
         updateSpecialIslamicDateMessage()
     }
@@ -1444,6 +1173,34 @@ PlasmoidItem {
         }
     }
 
+    // =========================================================================
+    // QURAN AUDIO PREDICTIVE ROUTING HELPERS
+    // =========================================================================
+    
+    function padZero(num) {
+        var s = num + "";
+        while (s.length < 3) s = "0" + s;
+        return s;
+    }
+
+    function getPredictableAudioUrl(reciterId, surahIdx, ayahNum) {
+        let folder = Logic.everyAyahFolders[reciterId];
+        if (!folder) folder = "Abdul_Basit_Murattal_192kbps";
+        return "https://everyayah.com/data/" + folder + "/" + padZero(surahIdx) + padZero(ayahNum) + ".mp3";
+    }
+
+    function globalAyahToSurahAyah(globalAyahIndex) {
+        let remaining = globalAyahIndex;
+        for (let i = 0; i < root.surahData.length; i++) {
+            let limit = root.surahData[i][2];
+            if (remaining <= limit) {
+                return { surahNumber: i + 1, ayahNumber: remaining };
+            }
+            remaining -= limit;
+        }
+        return { surahNumber: 114, ayahNumber: 6 };
+    }
+
     function fetchDailyVerse() {
         let today = getYYYYMMDD(new Date())
         if (cacheSettings.verseCacheDate === today && cacheSettings.verseCacheData) {
@@ -1462,7 +1219,7 @@ PlasmoidItem {
         }
         console.log("Fetching new daily verse...")
         let randomAyahNumber = Math.floor(Math.random() * 6236) + 1
-        let URL = `https://api.alquran.cloud/v1/ayah/${randomAyahNumber}/editions/quran-uthmani,en.sahih,${root.activeReciterIdentifier}`
+        let URL = `https://api.alquran.cloud/v1/ayah/${randomAyahNumber}/editions/quran-uthmani,en.sahih`
         let xhr = new XMLHttpRequest()
         xhr.onreadystatechange = function() {
             if (xhr.readyState === 4) {
@@ -1471,15 +1228,14 @@ PlasmoidItem {
                         let data = JSON.parse(xhr.responseText).data
                         let arabicData = data.find(ed => ed.edition.identifier === "quran-uthmani")
                         let translationData = data.find(ed => ed.edition.identifier === "en.sahih")
-                        let audioData = data.find(ed => ed.edition.identifier === root.activeReciterIdentifier)
 
                         root.dailyVerseArabic = arabicData.text
                         root.dailyVerseTranslation = translationData.text
                         root.dailyVerseReference = "Surah " + arabicData.surah.englishName + " (" + arabicData.surah.number + ":" + arabicData.numberInSurah + ")"
-                        root.dailyVerseAudioUrl = audioData.audio
                         root.dailyVerseGlobalAyahNumber = arabicData.number
                         root.currentSurahNumber = arabicData.surah.number
                         root.currentAyahNumber = arabicData.numberInSurah
+                        root.dailyVerseAudioUrl = getPredictableAudioUrl(root.activeReciterIdentifier, root.currentSurahNumber, root.currentAyahNumber)
 
                         let cachePayload = JSON.stringify({
                             arabic: root.dailyVerseArabic,
@@ -1531,53 +1287,55 @@ PlasmoidItem {
 
     function prefetchNextVerse(standbyPlayer, ayahNumber) {
         if (!root.continuousPlayActive) return
-            if (ayahNumber > 6236) {
-                root.continuousPlayActive = false;
-                console.log("Reached end of Quran.");
-                return
-            }
-            let targetReciter = root.activeReciterIdentifier
-            let URL = `https://api.alquran.cloud/v1/ayah/${ayahNumber}/editions/quran-uthmani,en.sahih,${targetReciter}`
+        if (ayahNumber > 6236) {
+            root.continuousPlayActive = false;
+            console.log("Reached end of Quran.");
+            return
+        }
+        let targetReciter = root.activeReciterIdentifier
+        
+        let coords = globalAyahToSurahAyah(ayahNumber);
+        let sNum = coords.surahNumber;
+        let aNum = coords.ayahNumber;
+        
+        let finalUrl = getPredictableAudioUrl(targetReciter, sNum, aNum);
+        
+        if (aNum === 1 && sNum !== 1 && sNum !== 9) {
+            root.storedVerseUrlForAfterBasmalah = finalUrl;
+            root.nextTrackIsBasmalah = true;
+            let basmalahUrl = getPredictableAudioUrl(targetReciter, 1, 1);
+            standbyPlayer.source = basmalahUrl;
+        } else {
+            root.nextTrackIsBasmalah = false;
+            console.log("Prefetching fresh Predictable URL instantly:", finalUrl)
+            standbyPlayer.source = finalUrl;
+        }
 
-            let xhr = new XMLHttpRequest()
-            xhr.onreadystatechange = function() {
-                if (xhr.readyState === 4) {
-                    if (xhr.status === 200) {
-                        try {
-                            let data = JSON.parse(xhr.responseText).data
-                            let arabicData = data.find(ed => ed.edition.identifier === "quran-uthmani")
-                            let translationData = data.find(ed => ed.edition.identifier === "en.sahih")
-                            let audioData = data.find(ed => ed.edition.identifier === targetReciter)
+        let URL = `https://api.alquran.cloud/v1/ayah/${ayahNumber}/editions/quran-uthmani,en.sahih`
 
-                            if (audioData && audioData.audio && arabicData && translationData) {
-                                root.nextQueuedArabic = arabicData.text
-                                root.nextQueuedTranslation = translationData.text
-                                root.nextQueuedReference = "Surah " + arabicData.surah.englishName + " (" + arabicData.surah.number + ":" + arabicData.numberInSurah + ")"
-                                root.nextQueuedSurahNumber = arabicData.surah.number
-                                root.nextQueuedAyahNumber = arabicData.numberInSurah
+        let xhr = new XMLHttpRequest()
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState === 4) {
+                if (xhr.status === 200) {
+                    try {
+                        let data = JSON.parse(xhr.responseText).data
+                        let arabicData = data.find(ed => ed.edition.identifier === "quran-uthmani")
+                        let translationData = data.find(ed => ed.edition.identifier === "en.sahih")
 
-                                let finalUrl = audioData.audio.replace("https:", "http:")
-
-                                if (audioData.numberInSurah === 1 && audioData.surah.number !== 1 && audioData.surah.number !== 9) {
-                                    root.storedVerseUrlForAfterBasmalah = finalUrl;
-                                    root.nextTrackIsBasmalah = true;
-                                    let baseUrl = finalUrl.substring(0, finalUrl.lastIndexOf('/'));
-                                    let basmalahUrl = baseUrl + "/1.mp3";
-                                    standbyPlayer.source = basmalahUrl;
-                                } else {
-                                    root.nextTrackIsBasmalah = false;
-                                    console.log("Prefetching fresh URL:", finalUrl)
-                                    standbyPlayer.source = finalUrl
-                                }
-                            }
-                        } catch(e) { console.log("Error parsing prefetch", e.toString()) }
-                    } else {
-                        console.log("Prefetch API error:", xhr.status)
-                        root.continuousPlayActive = false
-                    }
+                        if (arabicData && translationData) {
+                            root.nextQueuedArabic = arabicData.text
+                            root.nextQueuedTranslation = translationData.text
+                            root.nextQueuedReference = "Surah " + arabicData.surah.englishName + " (" + arabicData.surah.number + ":" + arabicData.numberInSurah + ")"
+                            root.nextQueuedSurahNumber = arabicData.surah.number
+                            root.nextQueuedAyahNumber = arabicData.numberInSurah
+                        }
+                    } catch(e) { console.log("Error parsing prefetch text", e.toString()) }
+                } else {
+                    console.log("Prefetch text API error:", xhr.status)
                 }
             }
-            xhr.open("GET", URL, true); xhr.send()
+        }
+        xhr.open("GET", URL, true); xhr.send()
     }
 
     Component.onCompleted: {
