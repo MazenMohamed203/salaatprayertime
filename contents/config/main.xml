@@ -28,6 +28,9 @@
     <entry name="languageIndex" type="Int">
       <default>0</default>
     </entry>
+    <entry name="useArabicNumbers" type="Bool">
+      <default>true</default>
+    </entry>
     <entry name="school" type="Int">
       <default>0</default>
     </entry>
