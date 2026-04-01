@@ -25,7 +25,11 @@ Quran api from [Quran API](https://alquran.cloud/api).
 
 
 ## Installation
-*Just download from [Kde Store](https://store.kde.org/p/2293509/). or clone this repository.
+*Just download from [Kde Store](https://store.kde.org/p/2293509/).
+*Or download the tar.gz file from the releases
+*Install in the terminal : kpackagetool6 --type Plasma/Applet --install path/to/com.github.mazen.salatprayertime.tar.gz
+*Or Install from plasma gui by write clicking on taskbar and clicking add or manage widgets, then at the top of the screen click get new, install from local file and select the tar.gz file
+![Install guide](Install.png)
 
 ## Configuration
 Right-click the widget and select "Configure..." to set your location, calculation preferences, and display options.
@@ -34,5 +38,5 @@ You can click on the pause icon in the widget to pause and resume when Quran is 
 ---
 * *Developed by **Mazen**.*
 * *(Forked from the amazing widget by [**Hamza Nasher-Alneam**](https://github.com/hnasheralneam/prayertimes). with thanks to **@ammar-elmesaly** and **@MrGueest** for their contributions to the original project).*
-* *(Thanks to **@EfeKaralar** and **@hadealahmad** for their contributions to this project).*
+* *(Thanks to **@EfeKaralar** , **@hadealahmad** and **@Abdw3253** for their contributions to this project).*
 * *Other widgets: [ezanvakti-widget](https://github.com/necmettin1461/ezanvakti-widget)(in Turkish).*
