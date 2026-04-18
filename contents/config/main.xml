@@ -35,7 +35,7 @@
       <default>0</default>
     </entry>
     <entry name="method" type="Int">
-      <default>4</default>
+      <default>3</default>
     </entry>
     <entry name="compactStyle" type="Int">
       <default>1</default>
