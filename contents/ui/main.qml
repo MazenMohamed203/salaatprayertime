@@ -48,6 +48,7 @@ PlasmoidItem {
 
     property var nextPrayerDateTime: null
     property string timeUntilNextPrayer: ""
+    property bool blockAdhanOnFetch: false
     property string nextPrayerNameForDisplay: ""
     property string nextPrayerTimeForDisplay: ""
 
@@ -160,6 +161,14 @@ PlasmoidItem {
         onTriggered: {
             root.fetchTimes();
             root.fetchDailyVerse();
+        }
+    }
+
+    Timer {
+        id: configDebounceTimer
+        interval: 500; repeat: false
+        onTriggered: {
+            root.fetchTimes();
         }
     }
 
@@ -881,14 +890,19 @@ PlasmoidItem {
                     root.activePrayer = newActivePrayer
 
                     if (root.lastActivePrayer !== "" && root.activePrayer !== "") {
-                        if (Plasmoid.configuration.notifications) {
-                            var notification = notificationComponent.createObject(root)
-                            notification.title = i18n("It's %1 time", getPrayerName(root.languageIndex, root.activePrayer))
-                            notification.sendEvent()
+                        if (root.blockAdhanOnFetch) {
+                            console.log("Config changed, suppressing Adhan for new location")
+                        } else {
+                            if (Plasmoid.configuration.notifications) {
+                                var notification = notificationComponent.createObject(root)
+                                notification.title = i18n("It's %1 time", getPrayerName(root.languageIndex, root.activePrayer))
+                                notification.sendEvent()
+                            }
+                            if (root.activePrayer !== "Sunrise") playAdhanAudio(root.activePrayer)
                         }
-                        if (root.activePrayer !== "Sunrise") playAdhanAudio(root.activePrayer)
                     }
                 }
+        if (root.blockAdhanOnFetch) root.blockAdhanOnFetch = false
     }
 
     function resetPreNotifications() { root.preNotifiedPrayers = {}
@@ -1053,9 +1067,9 @@ PlasmoidItem {
 
     function fetchTimes() {
         let todayForAPI = getFormattedDate(new Date())
-        let methodMap = [0, 1, 2, 3, 4, 5, 7, 8, 9, 10, 11, 12, 13, 14, 21];
-        let configIndex = (Plasmoid.configuration.method !== undefined) ? Plasmoid.configuration.method : 4;
-        let method = (methodMap[configIndex] !== undefined) ? methodMap[configIndex] : 4;
+        let methodMap = [0, 1, 2, 3, 4, 5, 7, 8, 9, 10, 11, 12, 13, 14, 21, 16, 17, 18, 19, 20, 22, 23];
+        let configIndex = (Plasmoid.configuration.method !== undefined) ? Plasmoid.configuration.method : 3;
+        let method = (methodMap[configIndex] !== undefined) ? methodMap[configIndex] : 3;
         let school = Plasmoid.configuration.school || 0
         let hijriAdj = Plasmoid.configuration.hijriOffset || 0
 
@@ -1113,9 +1127,9 @@ PlasmoidItem {
 
         if (daysSinceUpdate >= 5 || Object.keys(cachedData).length <= 1) {
             const year = now.getFullYear(); const month = now.getMonth() + 1
-            let methodMap = [0, 1, 2, 3, 4, 5, 7, 8, 9, 10, 11, 12, 13, 14, 21];
-            let configIndex = (Plasmoid.configuration.method !== undefined) ? Plasmoid.configuration.method : 4;
-            const method = (methodMap[configIndex] !== undefined) ? methodMap[configIndex] : 4;
+            let methodMap = [0, 1, 2, 3, 4, 5, 7, 8, 9, 10, 11, 12, 13, 14, 21, 16, 17, 18, 19, 20, 22, 23];
+            let configIndex = (Plasmoid.configuration.method !== undefined) ? Plasmoid.configuration.method : 3;
+            const method = (methodMap[configIndex] !== undefined) ? methodMap[configIndex] : 3;
             const school = (Plasmoid.configuration.school !== undefined) ? Plasmoid.configuration.school : 0
             let URL = ""
             if (root.useCoordinates && root.latitude && root.longitude) {
@@ -1349,9 +1363,14 @@ PlasmoidItem {
                 key === "useCoordinates" || key === "latitude" || key === "longitude") {
 
                 if (key === "useCoordinates") root.useCoordinates = Plasmoid.configuration.useCoordinates || false
-                    else if (key === "latitude") root.latitude = Plasmoid.configuration.latitude || ""
-                        else if (key === "longitude") root.longitude = Plasmoid.configuration.longitude || ""
-                            fetchTimes()
+                else if (key === "latitude") root.latitude = Plasmoid.configuration.latitude || ""
+                else if (key === "longitude") root.longitude = Plasmoid.configuration.longitude || ""
+                
+                // Invalidate cache and debounce the network fetch to avoid race condition and rate-limiting
+                cacheSettings.cacheData = "{}"
+                cacheSettings.lastCacheUpdate = 0
+                root.blockAdhanOnFetch = true
+                configDebounceTimer.restart()
 
                 } else if (key === "adhanAudioPath") {
                     root.adhanAudioPath = Plasmoid.configuration.adhanAudioPath || ""
