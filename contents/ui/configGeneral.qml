@@ -114,6 +114,54 @@ KCM.SimpleKCM {
     // INTERNAL DATA & LOGIC
     // ============================================================
 
+    function autoSelectMethod(country) {
+        if (!country) return;
+        let c = country.toLowerCase();
+        let methodIndex = 3; // Default to MWL
+        
+        if (c.includes("egypt")) methodIndex = 5;
+        else if (c.includes("morocco")) methodIndex = 14;
+        else if (c.includes("pakistan") || c.includes("bangladesh") || c.includes("india") || c.includes("afghanistan")) methodIndex = 1;
+        else if (c.includes("usa") || c.includes("america") || c.includes("canada") || c.includes("united states")) methodIndex = 2;
+        else if (c.includes("saudi")) methodIndex = 4;
+        else if (c.includes("iran")) methodIndex = 6;
+        else if (c.includes("gulf") || c.includes("bahrain") || c.includes("oman") || c.includes("yemen")) methodIndex = 7;
+        else if (c.includes("kuwait")) methodIndex = 8;
+        else if (c.includes("qatar")) methodIndex = 9;
+        else if (c.includes("singapore")) methodIndex = 10;
+        else if (c.includes("france")) methodIndex = 11;
+        else if (c.includes("turkey") || c.includes("turkiye")) methodIndex = 12;
+        else if (c.includes("russia")) methodIndex = 13;
+        else if (c.includes("uae") || c.includes("united arab emirates") || c.includes("dubai")) methodIndex = 15;
+        else if (c.includes("malaysia")) methodIndex = 16;
+        else if (c.includes("tunisia")) methodIndex = 17;
+        else if (c.includes("algeria")) methodIndex = 18;
+        else if (c.includes("indonesia")) methodIndex = 19;
+        else if (c.includes("portugal")) methodIndex = 20;
+        else if (c.includes("jordan")) methodIndex = 21;
+        
+        methodCombo.currentIndex = methodIndex;
+    }
+
+    function autoSelectMethodFromCoords(lat, lon) {
+        if (!lat || !lon) return;
+        let xhr = new XMLHttpRequest();
+        xhr.open("GET", `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=en`, true);
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState === 4 && xhr.status === 200) {
+                try {
+                    let data = JSON.parse(xhr.responseText);
+                    if (data.countryName) {
+                        root.autoSelectMethod(data.countryName);
+                    }
+                } catch (e) {
+                    console.log("Error parsing reverse geocoding data", e.toString());
+                }
+            }
+        }
+        xhr.send();
+    }
+
     property var reciterNamesModel: [
         {en: "Minshawi (Murattal)", ar: "المنشاوي (مرتل)"},
         {en: "Alafasy", ar: "العفاسي"},
@@ -192,8 +240,27 @@ KCM.SimpleKCM {
         RowLayout {
             visible: useCoordsCheck.checked
             Kirigami.FormData.label: languageCombo.currentIndex === 1 ? "الإحداثيات:" : "Coordinates:"
-            TextField { id: latField; placeholderText: languageCombo.currentIndex === 1 ? "خط العرض" : "Latitude"; validator: DoubleValidator { bottom: -90.0; top: 90.0; decimals: 15 } }
-            TextField { id: longField; placeholderText: languageCombo.currentIndex === 1 ? "خط الطول" : "Longitude"; validator: DoubleValidator { bottom: -180.0; top: 180.0; decimals: 15 } }
+            
+            Timer {
+                id: coordsDebounceTimer
+                interval: 1000; repeat: false
+                onTriggered: root.autoSelectMethodFromCoords(latField.text, longField.text)
+            }
+
+            TextField { 
+                id: latField
+                placeholderText: languageCombo.currentIndex === 1 ? "خط العرض" : "Latitude"
+                validator: DoubleValidator { bottom: -90.0; top: 90.0; decimals: 15 }
+                onTextChanged: coordsDebounceTimer.restart()
+                onEditingFinished: coordsDebounceTimer.restart()
+            }
+            TextField { 
+                id: longField
+                placeholderText: languageCombo.currentIndex === 1 ? "خط الطول" : "Longitude"
+                validator: DoubleValidator { bottom: -180.0; top: 180.0; decimals: 15 }
+                onTextChanged: coordsDebounceTimer.restart()
+                onEditingFinished: coordsDebounceTimer.restart()
+            }
         }
 
         TextField {
@@ -207,6 +274,7 @@ KCM.SimpleKCM {
             visible: !useCoordsCheck.checked
             Kirigami.FormData.label: languageCombo.currentIndex === 1 ? "الدولة:" : "Country:"
             placeholderText: languageCombo.currentIndex === 1 ? "مثال: مصر" : "e.g. Egypt"
+            onTextChanged: root.autoSelectMethod(text)
         }
 
         Button {
@@ -223,6 +291,9 @@ KCM.SimpleKCM {
                             let data = JSON.parse(xhr.responseText);
                             cityField.text = data.city || "";
                             countryField.text = data.country || "";
+                            if (data.country) {
+                                root.autoSelectMethod(data.country);
+                            }
                             if (data.lat && data.lon) {
                                 latField.text = data.lat.toString();
                                 longField.text = data.lon.toString();
@@ -256,7 +327,14 @@ KCM.SimpleKCM {
                 { ar: "اتحاد المنظمات الإسلامية بفرنسا", en: "Union Organization islamic de France" },
                 { ar: "رئاسة الشؤون الدينية التركية", en: "Diyanet Isleri Baskanligi, Turkey" },
                 { ar: "الإدارة الدينية لمسلمي روسيا", en: "Spiritual Administration of Muslims of Russia" },
-                { ar: "المغرب", en: "Morocco" }
+                { ar: "المغرب", en: "Morocco" },
+                { ar: "دبي", en: "Dubai" },
+                { ar: "إدارة التنمية الإسلامية الماليزية", en: "Jabatan Kemajuan Islam Malaysia (JAKIM)" },
+                { ar: "تونس", en: "Tunisia" },
+                { ar: "الجزائر", en: "Algeria" },
+                { ar: "وزارة الشؤون الدينية في إندونيسيا", en: "Kementerian Agama Republik Indonesia" },
+                { ar: "الجماعة الإسلامية في لشبونة (البرتغال)", en: "Comunidade Islamica de Lisboa (Portugal)" },
+                { ar: "وزارة الأوقاف والشؤون والمقدسات الإسلامية الأردنية", en: "Ministry of Awqaf, Jordan" }
             ]
         }
         ComboBox { 
