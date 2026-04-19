@@ -61,6 +61,7 @@ KCM.SimpleKCM {
     property alias cfg_maghribOffsetMinutes: maghribOffset.value
     property alias cfg_ishaOffsetMinutes: ishaOffset.value
     property alias cfg_hijriOffset: hijriOffsetSpin.value
+    property bool cfg_isOfflineFallback: false
 
     // ============================================================
     // SUPPRESS HARMFUL/BENIGN KCM WARNINGS
@@ -228,6 +229,13 @@ KCM.SimpleKCM {
         LayoutMirroring.enabled: languageCombo.currentIndex === 1
         LayoutMirroring.childrenInherit: true
 
+        Kirigami.InlineMessage {
+            Layout.fillWidth: true
+            visible: cfg_isOfflineFallback === true
+            type: Kirigami.MessageType.Warning
+            text: languageCombo.currentIndex === 1 ? "أنت في وضع عدم الاتصال (أول تشغيل). يرجى إدخال إحداثياتك أدناه لحساب أوقات الصلاة محلياً، أو الاتصال بالإنترنت." : "Offline Mode (First Run). Please enter your coordinates below to calculate prayer times locally, or connect to the internet."
+        }
+
         // --- SECTION 1: LOCATION ---
         Kirigami.Separator { Kirigami.FormData.label: languageCombo.currentIndex === 1 ? "الموقع" : "Location"; Kirigami.FormData.isSection: true }
 
@@ -235,6 +243,10 @@ KCM.SimpleKCM {
             id: useCoordsCheck
             text: languageCombo.currentIndex === 1 ? "استخدام الإحداثيات الدقيقة (موصى به)" : "Use Exact Coordinates (Recommended)"
             Kirigami.FormData.label: languageCombo.currentIndex === 1 ? "طريقة التحديد:" : "Method:"
+            enabled: !cfg_isOfflineFallback
+            Component.onCompleted: {
+                if (cfg_isOfflineFallback === true) checked = true;
+            }
         }
 
         RowLayout {
@@ -280,6 +292,7 @@ KCM.SimpleKCM {
         Button {
             text: languageCombo.currentIndex === 1 ? "اكتشاف الموقع تلقائياً (عبر الإنترنت)" : "Auto-Detect Location (IP)"
             icon.name: "system-search"
+            enabled: !cfg_isOfflineFallback
             Kirigami.FormData.label: "" // Aligns it properly under the fields
             Layout.alignment: Qt.AlignLeft
             onClicked: {
