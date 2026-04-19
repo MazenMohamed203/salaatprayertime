@@ -13,7 +13,7 @@ Quran api from [Quran API](https://alquran.cloud/api).
 ![Prayer Times Settings2](Settings2.png)
 
 ## Key Features
-* Works completely offline(only with coordinates)
+* Works completely offline (only with coordinates).
 * Daily prayer times with customizable offsets.
 * Hijri date display with manual adjustment.
 * Special Islamic date notifications (e.g., Ramadan, Eid).
