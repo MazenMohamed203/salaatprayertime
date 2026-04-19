@@ -9,7 +9,7 @@ import QtCore
 import QtMultimedia
 import org.kde.plasma.core as PlasmaCore
 import "Constants.js" as Logic
-
+import "OfflinePrayerCalc.js" as OfflineCalc
 PlasmoidItem {
     id: root
 
@@ -1098,7 +1098,8 @@ PlasmoidItem {
                     // Directly set the data (No more complex nested requests)
                     _setProcessedHijriData(root.rawHijriDataFromApi)
 
-                    update5DayCache()
+                    update30DayCache()
+                    Plasmoid.configuration.isOfflineFallback = false
                 } else {
                     loadFromCache()
                 }
@@ -1119,47 +1120,51 @@ PlasmoidItem {
                 cacheSettings.cacheData = JSON.stringify(updatedCache)
     }
 
-    function update5DayCache() {
+    function update30DayCache() {
         const now = new Date()
-        const cacheKey = "last_5day_update"
+        const cacheKey = "last_30day_update"
         const lastUpdate = Number(cachedData[cacheKey] || 0)
         const daysSinceUpdate = (now.getTime() - lastUpdate) / (1000 * 60 * 60 * 24)
 
-        if (daysSinceUpdate >= 5 || Object.keys(cachedData).length <= 1) {
-            const year = now.getFullYear(); const month = now.getMonth() + 1
+        if (daysSinceUpdate >= 30 || Object.keys(cachedData).length <= 1) {
+            const year = now.getFullYear()
             let methodMap = [0, 1, 2, 3, 4, 5, 7, 8, 9, 10, 11, 12, 13, 14, 21, 16, 17, 18, 19, 20, 22, 23];
             let configIndex = (Plasmoid.configuration.method !== undefined) ? Plasmoid.configuration.method : 3;
             const method = (methodMap[configIndex] !== undefined) ? methodMap[configIndex] : 3;
             const school = (Plasmoid.configuration.school !== undefined) ? Plasmoid.configuration.school : 0
             let URL = ""
             if (root.useCoordinates && root.latitude && root.longitude) {
-                URL = `https://api.aladhan.com/v1/calendar/${year}/${month}?latitude=${encodeURIComponent(root.latitude)}&longitude=${encodeURIComponent(root.longitude)}&method=${method}&school=${school}`
+                URL = `https://api.aladhan.com/v1/calendar/${year}?latitude=${encodeURIComponent(root.latitude)}&longitude=${encodeURIComponent(root.longitude)}&method=${method}&school=${school}`
             } else {
                 if (!Plasmoid.configuration.city || !Plasmoid.configuration.country) { saveTodayToCache(); return }
-                URL = `https://api.aladhan.com/v1/calendarByCity/${year}/${month}?city=${encodeURIComponent(Plasmoid.configuration.city)}&country=${encodeURIComponent(Plasmoid.configuration.country)}&method=${method}&school=${school}`
+                URL = `https://api.aladhan.com/v1/calendarByCity/${year}?city=${encodeURIComponent(Plasmoid.configuration.city)}&country=${encodeURIComponent(Plasmoid.configuration.country)}&method=${method}&school=${school}`
             }
             const xhr = new XMLHttpRequest()
             xhr.onreadystatechange = function() {
                 if (xhr.readyState === 4 && xhr.status === 200) {
                     try {
-                        const monthlyData = JSON.parse(xhr.responseText).data
-                        if (monthlyData && monthlyData.length > 0) {
+                        const annualData = JSON.parse(xhr.responseText).data
+                        if (annualData) {
                             const updatedCache = Object.assign({}, cachedData)
-                            for (let i = 0; i < monthlyData.length; i++) {
-                                const dayData = monthlyData[i]
-                                if (!dayData || !dayData.date || !dayData.date.gregorian || !dayData.date.hijri || !dayData.timings) continue
+                            for (let m = 1; m <= 12; m++) {
+                                let monthlyData = annualData[m.toString()]
+                                if (!monthlyData) continue
+                                for (let i = 0; i < monthlyData.length; i++) {
+                                    const dayData = monthlyData[i]
+                                    if (!dayData || !dayData.date || !dayData.date.gregorian || !dayData.date.hijri || !dayData.timings) continue
                                     const parts = dayData.date.gregorian.date.split('-'); if (parts.length !== 3) continue
                                     const dateKey = `${parts[2]}-${parts[1]}-${parts[0]}`
                                     const cleanTimings = {}
                                     const prayerKeys = ["Fajr", "Sunrise", "Dhuhr", "Asr", "Maghrib", "Isha"]
                                     for (const pKey of prayerKeys) { if (dayData.timings[pKey]) cleanTimings[pKey] = dayData.timings[pKey] }
                                     if (Object.keys(cleanTimings).length > 0) updatedCache[dateKey] = { timings: cleanTimings, hijri: dayData.date.hijri }
+                                }
                             }
                             updatedCache[cacheKey] = now.getTime()
                             cacheSettings.cacheData = JSON.stringify(updatedCache)
                             cacheSettings.lastCacheUpdate = now.getTime()
                         }
-                    } catch (e) { console.log("Monthly cache parse error:", e.toString()) }
+                    } catch (e) { console.log("Annual cache parse error:", e.toString()) }
                 }
             }
             xhr.open("GET", URL, true); xhr.send()
@@ -1180,10 +1185,31 @@ PlasmoidItem {
                 loaded = true
             } catch (err) { console.log("Error loading from cache:", err.toString()) }
         }
+        Plasmoid.configuration.isOfflineFallback = !loaded;
         if (!loaded) {
-            root.times = {}; processRawTimesAndApplyOffsets()
-            root.hijriDateDisplay = i18n("Offline - No data")
-            root.specialIslamicDateMessage = ""
+            let lat = root.latitude || (root.useCoordinates ? 0 : 21.4225)
+            let lng = root.longitude || (root.useCoordinates ? 0 : 39.8262)
+            if (lat !== 0 && lng !== 0) {
+                let timeZoneOffset = -new Date().getTimezoneOffset() / 60
+                let method = Plasmoid.configuration.method !== undefined ? Plasmoid.configuration.method : 3
+                let school = Plasmoid.configuration.school !== undefined ? Plasmoid.configuration.school : 0
+                
+                root.times = OfflineCalc.getTimes(new Date(), lat, lng, timeZoneOffset, method, school)
+                root.times.apiGregorianDate = getFormattedDate(new Date())
+                processRawTimesAndApplyOffsets()
+                
+                try {
+                    let hijriFmt = new Intl.DateTimeFormat('ar-SA-u-ca-islamic', {day: 'numeric', month: 'long', year: 'numeric'}).format(new Date())
+                    root.hijriDateDisplay = hijriFmt + " " + "هـ"
+                } catch(e) {
+                    root.hijriDateDisplay = i18n("Offline Mode")
+                }
+                root.specialIslamicDateMessage = ""
+            } else {
+                root.times = {}; processRawTimesAndApplyOffsets()
+                root.hijriDateDisplay = i18n("Offline - Set Coordinates")
+                root.specialIslamicDateMessage = ""
+            }
         }
     }
 
