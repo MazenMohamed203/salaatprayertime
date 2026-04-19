@@ -115,6 +115,10 @@
     <entry name="showBackground" type="Bool">
       <default>true</default>
     </entry>
+    
+    <entry name="isOfflineFallback" type="Bool">
+      <default>false</default>
+    </entry>
 
   </group>
 
