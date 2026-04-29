@@ -104,3 +104,63 @@ function getTimes(date, lat, lng, timeZone, methodIndex, asrSchool) {
         Isha: finalIsha
     };
 }
+
+function getHijriDate(date, adjustment) {
+    var day = date.getDate();
+    var month = date.getMonth() + 1; // 1-12
+    var year = date.getFullYear();
+
+    var m = month;
+    var y = year;
+    if (m < 3) {
+        y -= 1;
+        m += 12;
+    }
+    
+    var a = Math.floor(y / 100);
+    var b = 2 - a + Math.floor(a / 4);
+    if (y < 1583) b = 0;
+    if (y === 1582) {
+        if (m > 10) b = -10;
+        if (m === 10) {
+            b = 0;
+            if (day > 4) b = -10;
+        }
+    }
+    
+    var jd = Math.floor(365.25 * (y + 4716)) + Math.floor(30.6001 * (m + 1)) + day + b - 1524;
+    jd += Math.floor(adjustment || 0);
+
+    b = 0;
+    if (jd > 2299160) {
+        a = Math.floor((jd - 1867216.25) / 36524.25);
+        b = 1 + a - Math.floor(a / 4);
+    }
+    var bb = jd + b + 1524;
+    var cc = Math.floor((bb - 122.1) / 365.25);
+    var dd = Math.floor(365.25 * cc);
+    var ee = Math.floor((bb - dd) / 30.6001);
+    
+    day = bb - dd - Math.floor(30.6001 * ee);
+    month = ee - 1;
+    if (ee > 13) {
+        cc += 1;
+        month = ee - 13;
+    }
+    year = cc - 4716;
+
+    var iyear = 10631.0 / 30.0;
+    var epochastro = 1948084;
+    var shift1 = 8.01 / 60.0;
+    var z = jd - epochastro;
+    var cyc = Math.floor(z / 10631.0);
+    z = z - 10631 * cyc;
+    var j = Math.floor((z - shift1) / iyear);
+    var iy = 30 * cyc + j;
+    z = z - Math.floor(j * iyear + shift1);
+    var im = Math.floor((z + 28.5001) / 29.5);
+    if (im === 13) im = 12;
+    var id = z - Math.floor(29.5001 * im - 29);
+    
+    return { day: Math.floor(id), month: Math.floor(im), year: Math.floor(iy) };
+}
