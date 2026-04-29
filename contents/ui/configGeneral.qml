@@ -61,6 +61,7 @@ KCM.SimpleKCM {
     property alias cfg_maghribOffsetMinutes: maghribOffset.value
     property alias cfg_ishaOffsetMinutes: ishaOffset.value
     property alias cfg_hijriOffset: hijriOffsetSpin.value
+    property alias cfg_forceOfflineMode: forceOfflineCheck.checked
     property bool cfg_isOfflineFallback: false
 
     // ============================================================
@@ -69,6 +70,8 @@ KCM.SimpleKCM {
     property var cfg_adhanAudioPathDefault
     property var cfg_adhanPlaybackModeDefault
     property var cfg_adhanVolumeDefault
+    property var cfg_forceOfflineModeDefault
+    property var cfg_isOfflineFallbackDefault
     property var cfg_asrOffsetMinutesDefault
     property var cfg_author
     property var cfg_authorDefault
@@ -231,7 +234,7 @@ KCM.SimpleKCM {
 
         Kirigami.InlineMessage {
             Layout.fillWidth: true
-            visible: cfg_isOfflineFallback === true
+            visible: cfg_isOfflineFallback === true && !forceOfflineCheck.checked
             type: Kirigami.MessageType.Warning
             text: languageCombo.currentIndex === 1 ? "أنت في وضع عدم الاتصال (أول تشغيل). يرجى إدخال إحداثياتك أدناه لحساب أوقات الصلاة محلياً، أو الاتصال بالإنترنت." : "Offline Mode (First Run). Please enter your coordinates below to calculate prayer times locally, or connect to the internet."
         }
@@ -243,9 +246,9 @@ KCM.SimpleKCM {
             id: useCoordsCheck
             text: languageCombo.currentIndex === 1 ? "استخدام الإحداثيات الدقيقة (موصى به)" : "Use Exact Coordinates (Recommended)"
             Kirigami.FormData.label: languageCombo.currentIndex === 1 ? "طريقة التحديد:" : "Method:"
-            enabled: !cfg_isOfflineFallback
+            enabled: !cfg_isOfflineFallback && !forceOfflineCheck.checked
             Component.onCompleted: {
-                if (cfg_isOfflineFallback === true) checked = true;
+                if (cfg_isOfflineFallback === true || forceOfflineCheck.checked) checked = true;
             }
         }
 
@@ -277,13 +280,13 @@ KCM.SimpleKCM {
 
         TextField {
             id: cityField
-            visible: !useCoordsCheck.checked
+            visible: !useCoordsCheck.checked && !forceOfflineCheck.checked
             Kirigami.FormData.label: languageCombo.currentIndex === 1 ? "المدينة:" : "City:"
             placeholderText: languageCombo.currentIndex === 1 ? "مثال: القاهرة" : "e.g. Cairo"
         }
         TextField {
             id: countryField
-            visible: !useCoordsCheck.checked
+            visible: !useCoordsCheck.checked && !forceOfflineCheck.checked
             Kirigami.FormData.label: languageCombo.currentIndex === 1 ? "الدولة:" : "Country:"
             placeholderText: languageCombo.currentIndex === 1 ? "مثال: مصر" : "e.g. Egypt"
             onTextChanged: root.autoSelectMethod(text)
@@ -292,7 +295,7 @@ KCM.SimpleKCM {
         Button {
             text: languageCombo.currentIndex === 1 ? "اكتشاف الموقع تلقائياً (عبر الإنترنت)" : "Auto-Detect Location (IP)"
             icon.name: "system-search"
-            enabled: !cfg_isOfflineFallback
+            enabled: !cfg_isOfflineFallback && !forceOfflineCheck.checked
             Kirigami.FormData.label: "" // Aligns it properly under the fields
             Layout.alignment: Qt.AlignLeft
             onClicked: {
@@ -320,6 +323,8 @@ KCM.SimpleKCM {
                 xhr.send();
             }
         }
+
+        // Moved to bottom
 
         ComboBox {
             id: methodCombo
@@ -595,6 +600,18 @@ KCM.SimpleKCM {
             font.italic: true
             Layout.fillWidth: true
             opacity: 0.7
+        }
+
+        // --- SECTION 5: PRIVACY ---
+        Kirigami.Separator { Kirigami.FormData.label: languageCombo.currentIndex === 1 ? "الخصوصية" : "Privacy"; Kirigami.FormData.isSection: true }
+
+        CheckBox {
+            id: forceOfflineCheck
+            text: languageCombo.currentIndex === 1 ? "فرض وضع عدم الاتصال (حساب رياضي فقط)" : "Force Offline Mode (Strictly Mathematical)"
+            Kirigami.FormData.label: ""
+            onCheckedChanged: {
+                if (checked) useCoordsCheck.checked = true;
+            }
         }
 
     }
