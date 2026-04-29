@@ -5,10 +5,10 @@
   <kcfgfile name=""/>
   <group name="General">
     <entry name="city" type="String">
-      <default>Makkah</default>
+      <default></default>
     </entry>
     <entry name="country" type="String">
-      <default>Saudi Arabia</default>
+      <default></default>
     </entry>
     <entry name="useCoordinates" type="Bool">
       <default>false</default>
@@ -117,6 +117,10 @@
     </entry>
     
     <entry name="isOfflineFallback" type="Bool">
+      <default>false</default>
+    </entry>
+    
+    <entry name="forceOfflineMode" type="Bool">
       <default>false</default>
     </entry>
 
