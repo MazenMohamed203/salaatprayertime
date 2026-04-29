@@ -1066,6 +1066,11 @@ PlasmoidItem {
     }
 
     function fetchTimes() {
+        if (Plasmoid.configuration.forceOfflineMode) {
+            loadFromCache();
+            return;
+        }
+
         let todayForAPI = getFormattedDate(new Date())
         let methodMap = [0, 1, 2, 3, 4, 5, 7, 8, 9, 10, 11, 12, 13, 14, 21, 16, 17, 18, 19, 20, 22, 23];
         let configIndex = (Plasmoid.configuration.method !== undefined) ? Plasmoid.configuration.method : 3;
@@ -1174,7 +1179,7 @@ PlasmoidItem {
 
     function loadFromCache() {
         const todayKey = getYYYYMMDD(new Date()); let loaded = false
-        if (cachedData[todayKey]) {
+        if (!Plasmoid.configuration.forceOfflineMode && cachedData[todayKey]) {
             try {
                 const cachedEntry = cachedData[todayKey]
                 root.times = cachedEntry.timings
@@ -1187,9 +1192,12 @@ PlasmoidItem {
         }
         Plasmoid.configuration.isOfflineFallback = !loaded;
         if (!loaded) {
-            let lat = root.latitude || (root.useCoordinates ? 0 : 21.4225)
-            let lng = root.longitude || (root.useCoordinates ? 0 : 39.8262)
-            if (lat !== 0 && lng !== 0) {
+            let latStr = root.latitude !== undefined ? root.latitude.toString() : ""
+            let lngStr = root.longitude !== undefined ? root.longitude.toString() : ""
+            let lat = parseFloat(latStr); if (isNaN(lat)) lat = 21.4225
+            let lng = parseFloat(lngStr); if (isNaN(lng)) lng = 39.8262
+
+            if (true) {
                 let timeZoneOffset = -new Date().getTimezoneOffset() / 60
                 let method = Plasmoid.configuration.method !== undefined ? Plasmoid.configuration.method : 3
                 let school = Plasmoid.configuration.school !== undefined ? Plasmoid.configuration.school : 0
@@ -1198,13 +1206,18 @@ PlasmoidItem {
                 root.times.apiGregorianDate = getFormattedDate(new Date())
                 processRawTimesAndApplyOffsets()
                 
-                try {
-                    let hijriFmt = new Intl.DateTimeFormat('ar-SA-u-ca-islamic', {day: 'numeric', month: 'long', year: 'numeric'}).format(new Date())
-                    root.hijriDateDisplay = hijriFmt + " " + "هـ"
-                } catch(e) {
-                    root.hijriDateDisplay = i18n("Offline Mode")
-                }
-                root.specialIslamicDateMessage = ""
+                let hAdj = Plasmoid.configuration.hijriOffset || 0
+                let hDate = OfflineCalc.getHijriDate(new Date(), hAdj)
+                root.currentHijriDay = hDate.day
+                root.currentHijriMonth = hDate.month
+                root.currentHijriYear = hDate.year
+
+                let arMonths = ["محرم", "صفر", "ربيع الأول", "ربيع الآخر", "جمادى الأولى", "جمادى الآخرة", "رجب", "شعبان", "رمضان", "شوال", "ذو القعدة", "ذو الحجة"]
+                let enMonths = ["Muharram", "Safar", "Rabi Al-Awwal", "Rabi Al-Akhar", "Jumada Al-Awwal", "Jumada Al-Akhirah", "Rajab", "Shaban", "Ramadan", "Shawwal", "Dhu Al-Qidah", "Dhu Al-Hijjah"]
+                let monthName = root.languageIndex === 1 ? arMonths[hDate.month - 1] : enMonths[hDate.month - 1]
+                
+                root.hijriDateDisplay = hDate.day + " " + monthName + " " + hDate.year + " " + (root.languageIndex === 1 ? "هـ" : "AH")
+                updateSpecialIslamicDateMessage()
             } else {
                 root.times = {}; processRawTimesAndApplyOffsets()
                 root.hijriDateDisplay = i18n("Offline - Set Coordinates")
@@ -1380,6 +1393,56 @@ PlasmoidItem {
 
     Component.onCompleted: {
         initCache()
+
+        if (!Plasmoid.configuration.forceOfflineMode && !Plasmoid.configuration.useCoordinates && (Plasmoid.configuration.city === "" || Plasmoid.configuration.city === undefined)) {
+            console.log("First run detected. Auto-detecting location from IP...");
+            let xhr = new XMLHttpRequest();
+            xhr.open("GET", "http://ip-api.com/json/", true);
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                    try {
+                        let data = JSON.parse(xhr.responseText);
+                        if (data.city) Plasmoid.configuration.city = data.city;
+                        if (data.country) {
+                            Plasmoid.configuration.country = data.country;
+                            
+                            let c = data.country.toLowerCase();
+                            let methodIndex = 3; // Default to MWL
+                            
+                            if (c.includes("egypt")) methodIndex = 5;
+                            else if (c.includes("morocco")) methodIndex = 14;
+                            else if (c.includes("pakistan") || c.includes("bangladesh") || c.includes("india") || c.includes("afghanistan")) methodIndex = 1;
+                            else if (c.includes("usa") || c.includes("america") || c.includes("canada") || c.includes("united states")) methodIndex = 2;
+                            else if (c.includes("saudi")) methodIndex = 4;
+                            else if (c.includes("iran")) methodIndex = 6;
+                            else if (c.includes("gulf") || c.includes("bahrain") || c.includes("oman") || c.includes("yemen")) methodIndex = 7;
+                            else if (c.includes("kuwait")) methodIndex = 8;
+                            else if (c.includes("qatar")) methodIndex = 9;
+                            else if (c.includes("singapore")) methodIndex = 10;
+                            else if (c.includes("france")) methodIndex = 11;
+                            else if (c.includes("turkey") || c.includes("turkiye")) methodIndex = 12;
+                            else if (c.includes("russia")) methodIndex = 13;
+                            else if (c.includes("uae") || c.includes("united arab emirates") || c.includes("dubai")) methodIndex = 15;
+                            else if (c.includes("malaysia")) methodIndex = 16;
+                            else if (c.includes("tunisia")) methodIndex = 17;
+                            else if (c.includes("algeria")) methodIndex = 18;
+                            else if (c.includes("indonesia")) methodIndex = 19;
+                            else if (c.includes("portugal")) methodIndex = 20;
+                            else if (c.includes("jordan")) methodIndex = 21;
+                            
+                            Plasmoid.configuration.method = methodIndex;
+                        }
+                        if (data.lat && data.lon) {
+                            Plasmoid.configuration.latitude = data.lat.toString();
+                            Plasmoid.configuration.longitude = data.lon.toString();
+                            Plasmoid.configuration.useCoordinates = true;
+                        }
+                    } catch (e) { console.log("Error during first run IP fetch:", e.toString()) }
+                }
+            }
+            xhr.send();
+        }
+
         startupTimer.start()
         Plasmoid.configuration.valueChanged.connect(function(key) {
             if (key.endsWith("OffsetMinutes") && (Object.keys(root.times).length > 0 )) {
