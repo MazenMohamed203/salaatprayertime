@@ -449,9 +449,8 @@ PlasmoidItem {
         compactStyle: Plasmoid.configuration.compactStyle || 0
     }
 
-    fullRepresentation: Kirigami.Page {
+    fullRepresentation: Item {
         id: fullView
-        background: Rectangle { color: "transparent" }
 
         Shortcut { sequence: StandardKey.MediaTogglePlayPause; onActivated: root.togglePlayback() }
         Shortcut { sequence: StandardKey.MediaPlay; onActivated: { var p = root.isPlayerA_the_active_verse_player ? playerA : playerB; p.play() } }
@@ -462,8 +461,10 @@ PlasmoidItem {
             if (visible && Object.keys(root.displayPrayerTimes).length > 0) root.highlightActivePrayer(root.displayPrayerTimes);
         }
         implicitWidth: Kirigami.Units.gridUnit * 23.3
+        implicitHeight: mainColumn.implicitHeight
 
         Column {
+            id: mainColumn
             width: parent.width
             padding: Kirigami.Units.largeSpacing
             spacing: Kirigami.Units.smallSpacing
@@ -566,7 +567,7 @@ PlasmoidItem {
                 bottomPadding: Kirigami.Units.smallSpacing
             }
 
-            Button {
+            PlasmaComponents.Button {
                 anchors.horizontalCenter: parent.horizontalCenter
                 width: parent.width - (parent.padding * 2)
                 text: root.languageIndex === 1 ? "القرآن الكريم" : "Quran"
