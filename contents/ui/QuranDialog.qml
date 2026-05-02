@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
+import org.kde.plasma.components as PlasmaComponents
 import QtMultimedia
 import "Constants.js" as Logic
 
@@ -51,7 +52,7 @@ Dialog {
                 Layout.fillWidth: true
                 spacing: Kirigami.Units.smallSpacing
 
-                ComboBox {
+                PlasmaComponents.ComboBox {
                     id: surahCombo
                     Layout.fillWidth: true
                     Layout.preferredWidth: 2
@@ -66,7 +67,7 @@ Dialog {
                     }
                 }
 
-                SpinBox {
+                PlasmaComponents.SpinBox {
                     id: verseSpin
                     Layout.preferredWidth: Kirigami.Units.gridUnit * 5
                     from: 1
@@ -80,7 +81,7 @@ Dialog {
                 Layout.fillWidth: true
                 spacing: Kirigami.Units.smallSpacing
 
-                Button {
+                PlasmaComponents.Button {
                     Layout.fillWidth: true
                     text: widgetRoot.languageIndex === 1 ? i18n("تشغيل") : i18n("Play")
                     icon.name: "media-playback-start"
@@ -99,7 +100,7 @@ Dialog {
                     }
                 }
 
-                Button {
+                PlasmaComponents.Button {
                     Layout.fillWidth: true
                     property var activePlayer: widgetRoot.isPlayerA_the_active_verse_player ? playerA : playerB
                     text: activePlayer.playbackState === MediaPlayer.PlayingState ? (widgetRoot.languageIndex === 1 ? i18n("إيقاف مؤقت") : i18n("Pause")) : (widgetRoot.languageIndex === 1 ? i18n("استئناف") : i18n("Resume"))
@@ -112,12 +113,12 @@ Dialog {
             RowLayout {
                 Layout.fillWidth: true
                 spacing: Kirigami.Units.smallSpacing
-                Label {
+                PlasmaComponents.Label {
                     property var activePlayer: widgetRoot.isPlayerA_the_active_verse_player ? playerA : playerB
                     text: widgetRoot.formatTime(activePlayer.position)
                     font.pointSize: Kirigami.Theme.smallFont.pointSize
                 }
-                Slider {
+                PlasmaComponents.Slider {
                     Layout.fillWidth: true
                     property var activePlayer: widgetRoot.isPlayerA_the_active_verse_player ? playerA : playerB
                     from: 0
@@ -131,7 +132,7 @@ Dialog {
                         }
                     }
                 }
-                Label {
+                PlasmaComponents.Label {
                     property var activePlayer: widgetRoot.isPlayerA_the_active_verse_player ? playerA : playerB
                     text: widgetRoot.formatTime(activePlayer.duration)
                     font.pointSize: Kirigami.Theme.smallFont.pointSize
@@ -146,7 +147,7 @@ Dialog {
                     Layout.preferredWidth: Kirigami.Units.iconSizes.smallMedium
                     Layout.alignment: Qt.AlignVCenter
                 }
-                Slider {
+                PlasmaComponents.Slider {
                     id: verseVolumeSlider
                     Layout.fillWidth: true
                     Layout.alignment: Qt.AlignVCenter
@@ -154,14 +155,14 @@ Dialog {
                     value: widgetRoot.quranVolume
                     onValueChanged: widgetRoot.quranVolume = value
                 }
-                Label {
+                PlasmaComponents.Label {
                     text: Math.round(verseVolumeSlider.value * 100) + "%"
                     Layout.alignment: Qt.AlignVCenter
                     font.pointSize: Kirigami.Theme.smallFont.pointSize
                 }
             }
 
-            Label {
+            PlasmaComponents.Label {
                 text: widgetRoot.dailyVerseArabic
                 font.pointSize: Kirigami.Theme.defaultFont.pointSize + 2
                 font.weight: Font.Medium
@@ -171,7 +172,7 @@ Dialog {
                 wrapMode: Text.WordWrap
                 color: Kirigami.Theme.textColor
             }
-            Label {
+            PlasmaComponents.Label {
                 text: widgetRoot.dailyVerseTranslation
                 font.pointSize: Kirigami.Theme.defaultFont.pointSize
                 font.italic: true
@@ -181,7 +182,7 @@ Dialog {
                 opacity: 0.9
                 color: Kirigami.Theme.textColor
             }
-            Label {
+            PlasmaComponents.Label {
                 text: widgetRoot.dailyVerseReference
                 font.pointSize: Kirigami.Theme.smallFont.pointSize
                 opacity: 0.7
