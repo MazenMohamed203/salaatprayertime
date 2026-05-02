@@ -129,7 +129,7 @@ function getHijriDate(date, adjustment) {
     }
     
     var jd = Math.floor(365.25 * (y + 4716)) + Math.floor(30.6001 * (m + 1)) + day + b - 1524;
-    jd += Math.floor(adjustment || 0);
+    jd += Math.floor(adjustment || 0) - 1; // Internal -1 day offset
 
     b = 0;
     if (jd > 2299160) {
