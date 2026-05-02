@@ -6,7 +6,7 @@ It features Hijri date, special Islamic occasion messages, configurable time off
 Calculations are based on the [AlAdhan API](https://aladhan.com/prayer-times-api).
 Quran api from [Quran API](https://alquran.cloud/api).
 
-![Prayer Times Widget](Adhan.png) ![Prayer Times Widget2](Quran.png) 
+![Prayer Times Widget](Adhan.png) ![Prayer Times Widget2](Quran1.png) 
 
 ![Prayer Times Settings](Settings1.png)
 
