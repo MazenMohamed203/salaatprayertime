@@ -95,13 +95,19 @@ function getTimes(date, lat, lng, timeZone, methodIndex, asrSchool) {
     // Special handler for Umm Al-Qura Isha (90 mins after Maghrib)
     var finalIsha = m.isha === 90 ? formatTime(sunset + (90/60)) : formatTime(isha);
 
+    var nightDuration = (fajr + 24.0) - sunset;
+    var midnight = sunset + (nightDuration / 2.0);
+    var lastthird = sunset + (nightDuration * (2.0 / 3.0));
+
     return {
         Fajr: formatTime(fajr),
         Sunrise: formatTime(sunrise),
         Dhuhr: formatTime(midDay),
         Asr: formatTime(asr),
         Maghrib: formatTime(sunset),
-        Isha: finalIsha
+        Isha: finalIsha,
+        Midnight: formatTime(midnight),
+        Lastthird: formatTime(lastthird)
     };
 }
 
