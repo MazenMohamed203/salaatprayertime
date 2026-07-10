@@ -143,11 +143,11 @@ Item {
         id: alertBackground
         anchors.fill: parent
 
-        anchors.margins: -8
+        anchors.margins: 0
 
         color: "transparent"
 
-        radius: 10
+        radius: 6
 
         SequentialAnimation on color {
             id: subtleFlashAnimation
@@ -178,10 +178,10 @@ Item {
         id: gradientBackground
         anchors.fill: parent
 
-        anchors.margins: -8
+        anchors.margins: 0
 
         color: "transparent"
-        radius: 10
+        radius: 6
         visible: root.isPrePrayerAlertActive
         opacity: 0.0
 
@@ -284,5 +284,3 @@ Item {
         }
     }
 }
-
-
