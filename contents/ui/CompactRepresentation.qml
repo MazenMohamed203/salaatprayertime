@@ -118,9 +118,11 @@ Item {
     }
 
     // --- Timers for Toggle Mode ---
+    readonly property int toggleDisplayDurationMs: 18000  // 18s showing prayer times
+    readonly property int toggleRemainingDurationMs: 8000  // 8s showing countdown
     Timer {
         id: toggleTimer
-        interval: 18000
+        interval: root.toggleDisplayDurationMs
         running: root.compactStyle === 2 || root.compactStyle === 4
         repeat: true
         onTriggered: {
@@ -131,7 +133,7 @@ Item {
 
     Timer {
         id: toggleReturnTimer
-        interval: 8000
+        interval: root.toggleRemainingDurationMs
         repeat: false
         onTriggered: {
             root.toggleViewIsPrayerTime = true;

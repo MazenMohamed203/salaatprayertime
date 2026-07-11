@@ -1,5 +1,24 @@
 .pragma library
 
+// =============================================================================
+// CONSTANTS
+// =============================================================================
+
+/** All prayer time keys used throughout the widget */
+const PRAYER_KEYS = ["Fajr", "Sunrise", "Dhuhr", "Asr", "Maghrib", "Isha"]
+
+/** Keys for optional extended times (Midnight & Last Third of the night) */
+const PRAYER_KEYS_EXTENDED = ["Midnight", "Lastthird"]
+
+/** All prayer keys including extended ones */
+const PRAYER_KEYS_ALL = PRAYER_KEYS.concat(PRAYER_KEYS_EXTENDED)
+
+/** Keys for which Adhan is played (prayer times only, not Sunrise/Midnight/Lastthird) */
+const PRAYER_KEYS_WITH_ADHAN = ["Fajr", "Dhuhr", "Asr", "Maghrib", "Isha"]
+
+/** Prayer key order for computing next prayer (used in highlightActivePrayer) */
+const PRAYER_KEYS_CHECK_ORDER = ["Isha", "Maghrib", "Asr", "Dhuhr", "Sunrise", "Fajr"]
+
 const surahData = [
     ["Al-Fatiha", "الفاتحة", 7], ["Al-Baqarah", "البقرة", 286], ["Al-Imran", "آل عمران", 200], ["An-Nisa", "النساء", 176],
     ["Al-Ma'idah", "المائدة", 120], ["Al-An'am", "الأنعام", 165], ["Al-A'raf", "الأعراف", 206], ["Al-Anfal", "الأنفال", 75],
