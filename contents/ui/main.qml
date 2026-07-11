@@ -551,7 +551,7 @@ PlasmoidItem {
                         anchors.leftMargin: Kirigami.Units.largeSpacing
                         anchors.rightMargin: Kirigami.Units.largeSpacing
                         Label {
-                            text: getPrayerName(root.languageIndex, modelData) + " " + (Logic.prayerEmojis[modelData] || "")
+                            text: getPrayerName(root.languageIndex, modelData) + (Plasmoid.configuration.showPrayerEmojis !== false ? " " + (Logic.prayerEmojis[modelData] || "") : "")
                             color: parent.parent.color === Kirigami.Theme.highlightColor ? Kirigami.Theme.highlightedTextColor : Kirigami.Theme.textColor
                             font.weight: Font.Bold
                             font.pointSize: Kirigami.Theme.defaultFont.pointSize + 3
@@ -992,7 +992,7 @@ PlasmoidItem {
     function processRawTimesAndApplyOffsets() {
         const defaultTimesStructure = { Fajr: "--:--", Sunrise: "--:--", Dhuhr: "--:--", Asr: "--:--", Maghrib: "--:--", Isha: "--:--", Midnight: "--:--", Lastthird: "--:--", apiGregorianDate: getFormattedDate(new Date()) }
         if (!root.times || Object.keys(root.times).length === 0 || !root.times.Fajr) {
-            root.displayPrayerTimes = {defaultTimesStructure, apiGregorianDate: (root.times && root.times.apiGregorianDate) || defaultTimesStructure.apiGregorianDate }
+            root.displayPrayerTimes = Object.assign({}, defaultTimesStructure, { apiGregorianDate: (root.times && root.times.apiGregorianDate) || defaultTimesStructure.apiGregorianDate })
         } else {
             let newDisplayTimes = {}
             for (const key of Logic.PRAYER_KEYS_ALL) {
@@ -1434,7 +1434,7 @@ PlasmoidItem {
         if (!Plasmoid.configuration.forceOfflineMode && !Plasmoid.configuration.useCoordinates && (Plasmoid.configuration.city === "" || Plasmoid.configuration.city === undefined)) {
             console.log("First run detected. Auto-detecting location from IP...");
             let xhr = new XMLHttpRequest();
-            xhr.open("GET", "http://ip-api.com/json/", true);
+            xhr.open("GET", "https://ip-api.com/json/", true);
             xhr.onreadystatechange = function() {
                 if (xhr.readyState === 4 && xhr.status === 200) {
                     try {
