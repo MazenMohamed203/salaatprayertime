@@ -58,16 +58,20 @@ Item {
     function parseTimeToDate(timeString) {
         if (!timeString || timeString === "--:--") return null;
 
-        let cleanTime = timeString.replace(/\s*(AM|PM|am|pm)\s*/g, '');
+        let normalizedTime = timeString.replace(/[٠١٢٣٤٥٦٧٨٩]/g, function(d) {
+            return "٠١٢٣٤٥٦٧٨٩".indexOf(d);
+        });
+
+        let cleanTime = normalizedTime.replace(/\s*(AM|PM|am|pm|ص|م)\s*/g, '');
         let parts = cleanTime.split(':');
         if (parts.length < 2) return null;
 
         let hours = parseInt(parts[0], 10);
         let minutes = parseInt(parts[1], 10);
 
-        if (timeString.toLowerCase().includes('pm') && hours !== 12) {
+        if ((timeString.toLowerCase().includes('pm') || timeString.includes('م')) && hours !== 12) {
             hours += 12;
-        } else if (timeString.toLowerCase().includes('am') && hours === 12) {
+        } else if ((timeString.toLowerCase().includes('am') || timeString.includes('ص')) && hours === 12) {
             hours = 0;
         }
 
@@ -84,10 +88,10 @@ Item {
     Timer {
         id: prePrayerAlertTimer
         interval: 1000
-        running: true
+        running: Plasmoid.configuration.enablePrePrayerGlow !== false
         repeat: true
         onTriggered: {
-            if (!nextPrayerName || !nextPrayerTime || nextPrayerTime === "--:--") {
+            if (!nextPrayerName || !nextPrayerTime || nextPrayerTime === "--:--" || Plasmoid.configuration.enablePrePrayerGlow === false) {
                 root.isPrePrayerAlertActive = false;
                 return;
             }
@@ -118,6 +122,15 @@ Item {
     }
 
     // --- Timers for Toggle Mode ---
+    Connections {
+        target: Plasmoid.configuration
+        function onValueChanged(key) {
+            if (key === "enablePrePrayerGlow" && Plasmoid.configuration.enablePrePrayerGlow === false) {
+                root.isPrePrayerAlertActive = false;
+            }
+        }
+    }
+
     readonly property int toggleDisplayDurationMs: 18000  // 18s showing prayer times
     readonly property int toggleRemainingDurationMs: 8000  // 8s showing countdown
     Timer {
@@ -144,8 +157,6 @@ Item {
     Rectangle {
         id: alertBackground
         anchors.fill: parent
-
-        anchors.margins: 0
 
         color: "transparent"
 
@@ -179,8 +190,6 @@ Item {
     Rectangle {
         id: gradientBackground
         anchors.fill: parent
-
-        anchors.margins: 0
 
         color: "transparent"
         radius: 6
@@ -286,3 +295,5 @@ Item {
         }
     }
 }
+
+
