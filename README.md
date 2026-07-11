@@ -42,5 +42,5 @@ You can click on the pause icon in the widget to pause and resume when Quran is 
 ---
 * *Developed by **Mazen**.*
 * *(Forked from the amazing widget by [**Hamza Nasher-Alneam**](https://github.com/hnasheralneam/prayertimes). with thanks to **@ammar-elmesaly** and **@MrGueest** for their contributions to the original project).*
-* *(Thanks to **@EfeKaralar** , **@hadealahmad** and **@Abdw3253** for their contributions to this project).*
+* *(Thanks to **@EfeKaralar** , **@iswad-lab** , **@hadealahmad** and **@Abdw3253** for their contributions to this project).*
 * *Other widgets: [ezanvakti-widget](https://github.com/necmettin1461/ezanvakti-widget)(in Turkish).*
