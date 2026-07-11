@@ -460,10 +460,8 @@ PlasmoidItem {
         onVisibleChanged: {
             if (visible && Object.keys(root.displayPrayerTimes).length > 0) root.highlightActivePrayer(root.displayPrayerTimes);
         }
-        Layout.minimumWidth: Kirigami.Units.gridUnit * 23.3
-        Layout.minimumHeight: mainColumn.implicitHeight
-        Layout.preferredWidth: Kirigami.Units.gridUnit * 23.3
-        Layout.preferredHeight: mainColumn.implicitHeight
+        implicitWidth: Kirigami.Units.gridUnit * 23.3
+        implicitHeight: mainColumn.implicitHeight
 
         Column {
             id: mainColumn
@@ -536,7 +534,7 @@ PlasmoidItem {
 
             Repeater {
                 model: {
-                    let base = Logic.PRAYER_KEYS.slice();
+                    let base = ["Fajr", "Sunrise", "Dhuhr", "Asr", "Maghrib", "Isha"];
                     if (Plasmoid.configuration.showMidnight) base.push("Midnight");
                     if (Plasmoid.configuration.showLastThird) base.push("Lastthird");
                     return base;
@@ -553,7 +551,7 @@ PlasmoidItem {
                         anchors.leftMargin: Kirigami.Units.largeSpacing
                         anchors.rightMargin: Kirigami.Units.largeSpacing
                         Label {
-                            text: getPrayerName(root.languageIndex, modelData) + (Plasmoid.configuration.showEmojis ? " " + (Logic.prayerEmojis[modelData] || "") : "")
+                            text: getPrayerName(root.languageIndex, modelData) + " " + (Logic.prayerEmojis[modelData] || "")
                             color: parent.parent.color === Kirigami.Theme.highlightColor ? Kirigami.Theme.highlightedTextColor : Kirigami.Theme.textColor
                             font.weight: Font.Bold
                             font.pointSize: Kirigami.Theme.defaultFont.pointSize + 3
@@ -703,8 +701,8 @@ PlasmoidItem {
             if (prayerKey === "Lastthird") return "Last Third";
             return prayerKey;
         }
-        const arabicPrayers = {
-            "Fajr": "الفجر", "Sunrise": "الشروق", "Dhuhr": "الظهر",
+        const arabicPrayers = { 
+            "Fajr": "الفجر", "Sunrise": "الشروق", "Dhuhr": "الظهر", 
             "Asr": "العصر", "Maghrib": "المغرب", "Isha": "العشاء",
             "Midnight": "منتصف الليل", "Lastthird": "الثلث الأخير"
         }
@@ -796,8 +794,9 @@ PlasmoidItem {
 
         const now = new Date();
         const notificationWindows = Plasmoid.configuration.preNotificationMinutes.split(",").map(s => parseInt(s.trim())).filter(n => !isNaN(n) && n > 0);
+        const prayerKeys = ["Fajr", "Dhuhr", "Asr", "Maghrib", "Isha"];
 
-        for (const prayerName of Logic.PRAYER_KEYS_WITH_ADHAN) {
+        for (const prayerName of prayerKeys) {
             const prayerTimeStr = currentTimingsToUse[prayerName];
             if (!prayerTimeStr || prayerTimeStr === "--:--") continue;
 
@@ -845,8 +844,9 @@ PlasmoidItem {
 
         const now = new Date();
         const notificationWindow = Plasmoid.configuration.postNotificationMinutes;
+        const prayerKeys = ["Fajr", "Dhuhr", "Asr", "Maghrib", "Isha"];
 
-        for (const prayerName of Logic.PRAYER_KEYS_WITH_ADHAN) {
+        for (const prayerName of prayerKeys) {
             const prayerTimeStr = currentTimingsToUse[prayerName];
             if (!prayerTimeStr || prayerTimeStr === "--:--") continue;
 
@@ -884,20 +884,16 @@ PlasmoidItem {
         }
     }
 
-    /**
-     * Determines which prayer time is currently active by comparing
-     * the current time against all prayer timings. Also triggers
-     * Adhan playback when transitioning to a new prayer.
-     */
     function highlightActivePrayer(currentTimingsToUse) {
         if (!currentTimingsToUse || !currentTimingsToUse.Fajr) {
             root.activePrayer = ""; return
         }
         var newActivePrayer = ""
         let now = new Date()
+        const prayerCheckOrder = ["Isha", "Maghrib", "Asr", "Dhuhr", "Sunrise", "Fajr"]
         let foundActive = false
 
-        for (const prayer of Logic.PRAYER_KEYS_CHECK_ORDER) {
+        for (const prayer of prayerCheckOrder) {
             if (currentTimingsToUse[prayer] && currentTimingsToUse[prayer] !== "--:--" && now >= parseTime(currentTimingsToUse[prayer])) {
                 newActivePrayer = prayer; foundActive = true; break
             }
@@ -955,10 +951,6 @@ PlasmoidItem {
                 return String(finalHours).padStart(2, '0') + ":" + String(finalMinutes).padStart(2, '0')
     }
 
-    /**
-     * Computes which prayer is next and how much time remains until it.
-     * Also handles day-boundary logic for Fajr (next day after Isha).
-     */
     function calculateNextPrayer() {
         const prayerData = root.displayPrayerTimes
         if (!prayerData || !prayerData.Fajr || prayerData.Fajr === "--:--") {
@@ -966,11 +958,12 @@ PlasmoidItem {
             root.nextPrayerNameForDisplay = i18n("N/A"); root.nextPrayerTimeForDisplay = "";
             return
         }
+        const prayerKeys = ["Fajr", "Dhuhr", "Asr", "Maghrib", "Isha"]
         const now = new Date()
         const currentTimeStr = ("0" + now.getHours()).slice(-2) + ":" + ("0" + now.getMinutes()).slice(-2)
 
         let nextPrayerKey = "", nextPrayerRawTime = ""
-        for (const key of Logic.PRAYER_KEYS_WITH_ADHAN) {
+        for (const key of prayerKeys) {
             if (prayerData[key] && prayerData[key] !== "--:--" && prayerData[key] > currentTimeStr) {
                 nextPrayerKey = key; nextPrayerRawTime = prayerData[key]; break
             }
@@ -993,17 +986,14 @@ PlasmoidItem {
         }
     }
 
-    /**
-     * Applies user-configured minute offsets to the raw prayer times 
-     * and constructs the final object used for the UI display.
-     */
     function processRawTimesAndApplyOffsets() {
         const defaultTimesStructure = { Fajr: "--:--", Sunrise: "--:--", Dhuhr: "--:--", Asr: "--:--", Maghrib: "--:--", Isha: "--:--", Midnight: "--:--", Lastthird: "--:--", apiGregorianDate: getFormattedDate(new Date()) }
         if (!root.times || Object.keys(root.times).length === 0 || !root.times.Fajr) {
-            root.displayPrayerTimes = Object.assign({}, defaultTimesStructure, { apiGregorianDate: (root.times && root.times.apiGregorianDate) || defaultTimesStructure.apiGregorianDate })
+            root.displayPrayerTimes = {defaultTimesStructure, apiGregorianDate: (root.times && root.times.apiGregorianDate) || defaultTimesStructure.apiGregorianDate }
         } else {
             let newDisplayTimes = {}
-            for (const key of Logic.PRAYER_KEYS_ALL) {
+            const prayerKeys = ["Fajr", "Sunrise", "Dhuhr", "Asr", "Maghrib", "Isha", "Midnight", "Lastthird"]
+            for (const key of prayerKeys) {
                 let offset = Plasmoid.configuration[key.toLowerCase() + "OffsetMinutes"] || 0
                 newDisplayTimes[key] = root.times[key] ? applyOffsetToTime(root.times[key], offset) : "--:--"
             }
@@ -1014,11 +1004,6 @@ PlasmoidItem {
         calculateNextPrayer()
     }
 
-    /**
-     * Processes raw Hijri date data from the API (or cache), applies
-     * the user-configured day offset, adjusts month/year boundaries,
-     * and updates the display and special Islamic date messages.
-     */
     function _setProcessedHijriData(hijriDataObject) {
         if (!hijriDataObject || !hijriDataObject.month) {
             root.hijriDateDisplay = i18n("Date unavailable")
@@ -1097,11 +1082,6 @@ PlasmoidItem {
                         root.specialIslamicDateMessage = message
     }
 
-    /**
-     * Fetches prayer times from the AlAdhan API, or falls back to offline calculation.
-     * Supports both coordinates-based and city-based lookups.
-     * Results are cached locally for offline use.
-     */
     function fetchTimes() {
         if (Plasmoid.configuration.forceOfflineMode) {
             loadFromCache();
@@ -1154,18 +1134,14 @@ PlasmoidItem {
         if (!root.times || !root.times.Fajr || !root.rawHijriDataFromApi) return
             let todayKey = getYYYYMMDD(new Date())
             let cleanTimings = {}
-            Logic.PRAYER_KEYS_ALL.forEach(function(pKey) { if (root.times[pKey]) cleanTimings[pKey] = root.times[pKey] })
+            const prayerKeysToSave = ["Fajr", "Sunrise", "Dhuhr", "Asr", "Maghrib", "Isha", "Midnight", "Lastthird"]
+            prayerKeysToSave.forEach(function(pKey) { if (root.times[pKey]) cleanTimings[pKey] = root.times[pKey] })
             if (Object.keys(cleanTimings).length === 0) return
                 let updatedCache = cachedData
                 updatedCache[todayKey] = { timings: cleanTimings, hijri: root.rawHijriDataFromApi }
                 cacheSettings.cacheData = JSON.stringify(updatedCache)
     }
 
-    /**
-     * Pre-fetches a full year of prayer times from AlAdhan API
-     * and caches them locally. Runs at most once every 30 days
-     * to ensure offline availability without excessive API calls.
-     */
     function update30DayCache() {
         const now = new Date()
         const cacheKey = "last_30day_update"
@@ -1201,7 +1177,8 @@ PlasmoidItem {
                                     const parts = dayData.date.gregorian.date.split('-'); if (parts.length !== 3) continue
                                     const dateKey = `${parts[2]}-${parts[1]}-${parts[0]}`
                                     const cleanTimings = {}
-                                    for (const pKey of Logic.PRAYER_KEYS_ALL) { if (dayData.timings[pKey]) cleanTimings[pKey] = dayData.timings[pKey] }
+                                    const prayerKeys = ["Fajr", "Sunrise", "Dhuhr", "Asr", "Maghrib", "Isha", "Midnight", "Lastthird"]
+                                    for (const pKey of prayerKeys) { if (dayData.timings[pKey]) cleanTimings[pKey] = dayData.timings[pKey] }
                                     if (Object.keys(cleanTimings).length > 0) updatedCache[dateKey] = { timings: cleanTimings, hijri: dayData.date.hijri }
                                 }
                             }
@@ -1217,11 +1194,6 @@ PlasmoidItem {
         saveTodayToCache()
     }
 
-    /**
-     * Loads prayer times from local cache. If not available and
-     * offline mode is enabled, falls back to astronomical calculation
-     * via OfflinePrayerCalc.js.
-     */
     function loadFromCache() {
         const todayKey = getYYYYMMDD(new Date()); let loaded = false
         if (!Plasmoid.configuration.forceOfflineMode && cachedData[todayKey]) {
@@ -1242,26 +1214,32 @@ PlasmoidItem {
             let lat = parseFloat(latStr); if (isNaN(lat)) lat = 21.4225
             let lng = parseFloat(lngStr); if (isNaN(lng)) lng = 39.8262
 
-            let timeZoneOffset = -new Date().getTimezoneOffset() / 60
-            let method = Plasmoid.configuration.method !== undefined ? Plasmoid.configuration.method : 3
-            let school = Plasmoid.configuration.school !== undefined ? Plasmoid.configuration.school : 0
-            
-            root.times = OfflineCalc.getTimes(new Date(), lat, lng, timeZoneOffset, method, school)
-            root.times.apiGregorianDate = getFormattedDate(new Date())
-            processRawTimesAndApplyOffsets()
-            
-            let hAdj = Plasmoid.configuration.hijriOffset || 0
-            let hDate = OfflineCalc.getHijriDate(new Date(), hAdj)
-            root.currentHijriDay = hDate.day
-            root.currentHijriMonth = hDate.month
-            root.currentHijriYear = hDate.year
+            if (true) {
+                let timeZoneOffset = -new Date().getTimezoneOffset() / 60
+                let method = Plasmoid.configuration.method !== undefined ? Plasmoid.configuration.method : 3
+                let school = Plasmoid.configuration.school !== undefined ? Plasmoid.configuration.school : 0
+                
+                root.times = OfflineCalc.getTimes(new Date(), lat, lng, timeZoneOffset, method, school)
+                root.times.apiGregorianDate = getFormattedDate(new Date())
+                processRawTimesAndApplyOffsets()
+                
+                let hAdj = Plasmoid.configuration.hijriOffset || 0
+                let hDate = OfflineCalc.getHijriDate(new Date(), hAdj)
+                root.currentHijriDay = hDate.day
+                root.currentHijriMonth = hDate.month
+                root.currentHijriYear = hDate.year
 
-            let arMonths = ["محرم", "صفر", "ربيع الأول", "ربيع الآخر", "جمادى الأولى", "جمادى الآخرة", "رجب", "شعبان", "رمضان", "شوال", "ذو القعدة", "ذو الحجة"]
-            let enMonths = ["Muharram", "Safar", "Rabi Al-Awwal", "Rabi Al-Akhar", "Jumada Al-Awwal", "Jumada Al-Akhirah", "Rajab", "Shaban", "Ramadan", "Shawwal", "Dhu Al-Qidah", "Dhu Al-Hijjah"]
-            let monthName = root.languageIndex === 1 ? arMonths[hDate.month - 1] : enMonths[hDate.month - 1]
-            
-            root.hijriDateDisplay = hDate.day + " " + monthName + " " + hDate.year + " " + (root.languageIndex === 1 ? "هـ" : "AH")
-            updateSpecialIslamicDateMessage()
+                let arMonths = ["محرم", "صفر", "ربيع الأول", "ربيع الآخر", "جمادى الأولى", "جمادى الآخرة", "رجب", "شعبان", "رمضان", "شوال", "ذو القعدة", "ذو الحجة"]
+                let enMonths = ["Muharram", "Safar", "Rabi Al-Awwal", "Rabi Al-Akhar", "Jumada Al-Awwal", "Jumada Al-Akhirah", "Rajab", "Shaban", "Ramadan", "Shawwal", "Dhu Al-Qidah", "Dhu Al-Hijjah"]
+                let monthName = root.languageIndex === 1 ? arMonths[hDate.month - 1] : enMonths[hDate.month - 1]
+                
+                root.hijriDateDisplay = hDate.day + " " + monthName + " " + hDate.year + " " + (root.languageIndex === 1 ? "هـ" : "AH")
+                updateSpecialIslamicDateMessage()
+            } else {
+                root.times = {}; processRawTimesAndApplyOffsets()
+                root.hijriDateDisplay = i18n("Offline - Set Coordinates")
+                root.specialIslamicDateMessage = ""
+            }
         }
     }
 
@@ -1436,16 +1414,16 @@ PlasmoidItem {
         if (!Plasmoid.configuration.forceOfflineMode && !Plasmoid.configuration.useCoordinates && (Plasmoid.configuration.city === "" || Plasmoid.configuration.city === undefined)) {
             console.log("First run detected. Auto-detecting location from IP...");
             let xhr = new XMLHttpRequest();
-            xhr.open("GET", "https://freeipapi.com/api/json", true);
+            xhr.open("GET", "http://ip-api.com/json/", true);
             xhr.onreadystatechange = function() {
                 if (xhr.readyState === 4 && xhr.status === 200) {
                     try {
                         let data = JSON.parse(xhr.responseText);
-                        if (data.cityName) Plasmoid.configuration.city = data.cityName;
-                        if (data.countryName) {
-                            Plasmoid.configuration.country = data.countryName;
+                        if (data.city) Plasmoid.configuration.city = data.city;
+                        if (data.country) {
+                            Plasmoid.configuration.country = data.country;
                             
-                            let c = data.countryName.toLowerCase();
+                            let c = data.country.toLowerCase();
                             let methodIndex = 3; // Default to MWL
                             
                             if (c.includes("egypt")) methodIndex = 5;
@@ -1471,9 +1449,9 @@ PlasmoidItem {
                             
                             Plasmoid.configuration.method = methodIndex;
                         }
-                        if (data.latitude && data.longitude) {
-                            Plasmoid.configuration.latitude = data.latitude.toString();
-                            Plasmoid.configuration.longitude = data.longitude.toString();
+                        if (data.lat && data.lon) {
+                            Plasmoid.configuration.latitude = data.lat.toString();
+                            Plasmoid.configuration.longitude = data.lon.toString();
                             Plasmoid.configuration.useCoordinates = true;
                         }
                     } catch (e) { console.log("Error during first run IP fetch:", e.toString()) }
