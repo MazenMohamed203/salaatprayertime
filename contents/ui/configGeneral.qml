@@ -40,6 +40,7 @@ KCM.SimpleKCM {
     property alias cfg_postNotificationMinutes: postNotificationSpinBox.value
     property alias cfg_playPostAdhanSound: postAdhanSoundCheck.checked
     property alias cfg_showBackground: showBackgroundCheck.checked
+    property alias cfg_showPrayerEmojis: showEmojiCheck.checked
     property alias cfg_showCompactMediaButton: showCompactMediaCheck.checked
     property alias cfg_enableQuran: enableQuranCheck.checked
 
@@ -126,7 +127,7 @@ KCM.SimpleKCM {
         if (!country) return;
         let c = country.toLowerCase();
         let methodIndex = 3; // Default to MWL
-        
+
         if (c.includes("egypt")) methodIndex = 5;
         else if (c.includes("morocco")) methodIndex = 14;
         else if (c.includes("pakistan") || c.includes("bangladesh") || c.includes("india") || c.includes("afghanistan")) methodIndex = 1;
@@ -147,7 +148,7 @@ KCM.SimpleKCM {
         else if (c.includes("indonesia")) methodIndex = 19;
         else if (c.includes("portugal")) methodIndex = 20;
         else if (c.includes("jordan")) methodIndex = 21;
-        
+
         methodCombo.currentIndex = methodIndex;
     }
 
@@ -259,21 +260,21 @@ KCM.SimpleKCM {
         RowLayout {
             visible: useCoordsCheck.checked
             Kirigami.FormData.label: languageCombo.currentIndex === 1 ? "الإحداثيات:" : "Coordinates:"
-            
+
             Timer {
                 id: coordsDebounceTimer
                 interval: 1000; repeat: false
                 onTriggered: root.autoSelectMethodFromCoords(latField.text, longField.text)
             }
 
-            TextField { 
+            TextField {
                 id: latField
                 placeholderText: languageCombo.currentIndex === 1 ? "خط العرض" : "Latitude"
                 validator: DoubleValidator { bottom: -90.0; top: 90.0; decimals: 15 }
                 onTextChanged: coordsDebounceTimer.restart()
                 onEditingFinished: coordsDebounceTimer.restart()
             }
-            TextField { 
+            TextField {
                 id: longField
                 placeholderText: languageCombo.currentIndex === 1 ? "خط الطول" : "Longitude"
                 validator: DoubleValidator { bottom: -180.0; top: 180.0; decimals: 15 }
@@ -304,7 +305,7 @@ KCM.SimpleKCM {
             Layout.alignment: Qt.AlignLeft
             onClicked: {
                 let xhr = new XMLHttpRequest();
-                xhr.open("GET", "http://ip-api.com/json/", true);
+                xhr.open("GET", "https://ip-api.com/json/", true);
                 xhr.onreadystatechange = function() {
                     if (xhr.readyState === 4 && xhr.status === 200) {
                         try {
@@ -359,7 +360,7 @@ KCM.SimpleKCM {
                 { ar: "وزارة الأوقاف والشؤون والمقدسات الإسلامية الأردنية", en: "Ministry of Awqaf, Jordan" }
             ]
         }
-        ComboBox { 
+        ComboBox {
             id: schoolCombo
             Kirigami.FormData.label: languageCombo.currentIndex === 1 ? "المذهب الفقهي (العصر):" : "School (Juristic):"
             textRole: languageCombo.currentIndex === 1 ? "ar" : "en"
@@ -422,7 +423,7 @@ KCM.SimpleKCM {
                 }
                 Label { text: languageCombo.currentIndex === 1 ? "دقائق قبل الصلاة" : "minutes before" }
             }
-            Label { 
+            Label {
                 text: languageCombo.currentIndex === 1 ? "لإضافة عدة تنبيهات اكتب: 5, 10, 15" : "to add multiple times type: 5, 10, 15"
                 font.pixelSize: Kirigami.Theme.smallFont.pixelSize
                 opacity: 0.7
@@ -631,6 +632,13 @@ KCM.SimpleKCM {
             font.italic: true
             Layout.fillWidth: true
             opacity: 0.7
+        }
+
+        CheckBox {
+            id: showEmojiCheck
+            text: languageCombo.currentIndex === 1 ? "إظهار الرموز التعبيرية للأوقات" : "Show prayer emojis"
+            checked: true
+            Kirigami.FormData.label: ""
         }
 
         // --- SECTION 5: PRIVACY ---

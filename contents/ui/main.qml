@@ -551,7 +551,7 @@ PlasmoidItem {
                         anchors.leftMargin: Kirigami.Units.largeSpacing
                         anchors.rightMargin: Kirigami.Units.largeSpacing
                         Label {
-                            text: getPrayerName(root.languageIndex, modelData) + " " + (Logic.prayerEmojis[modelData] || "")
+                            text: getPrayerName(root.languageIndex, modelData) + (Plasmoid.configuration.showPrayerEmojis !== false ? " " + (Logic.prayerEmojis[modelData] || "") : "")
                             color: parent.parent.color === Kirigami.Theme.highlightColor ? Kirigami.Theme.highlightedTextColor : Kirigami.Theme.textColor
                             font.weight: Font.Bold
                             font.pointSize: Kirigami.Theme.defaultFont.pointSize + 3
@@ -612,7 +612,7 @@ PlasmoidItem {
 
         console.log("Fetching Surah " + surahNum + " Verse " + ayahNum)
         let targetReciter = root.activeReciterIdentifier
-        
+
         let finalUrl = getPredictableAudioUrl(targetReciter, surahNum, ayahNum)
         if (ayahNum === 1 && surahNum !== 1 && surahNum !== 9) {
             let basmalahUrl = getPredictableAudioUrl(targetReciter, 1, 1);
@@ -701,8 +701,8 @@ PlasmoidItem {
             if (prayerKey === "Lastthird") return "Last Third";
             return prayerKey;
         }
-        const arabicPrayers = { 
-            "Fajr": "الفجر", "Sunrise": "الشروق", "Dhuhr": "الظهر", 
+        const arabicPrayers = {
+            "Fajr": "الفجر", "Sunrise": "الشروق", "Dhuhr": "الظهر",
             "Asr": "العصر", "Maghrib": "المغرب", "Isha": "العشاء",
             "Midnight": "منتصف الليل", "Lastthird": "الثلث الأخير"
         }
@@ -989,7 +989,7 @@ PlasmoidItem {
     function processRawTimesAndApplyOffsets() {
         const defaultTimesStructure = { Fajr: "--:--", Sunrise: "--:--", Dhuhr: "--:--", Asr: "--:--", Maghrib: "--:--", Isha: "--:--", Midnight: "--:--", Lastthird: "--:--", apiGregorianDate: getFormattedDate(new Date()) }
         if (!root.times || Object.keys(root.times).length === 0 || !root.times.Fajr) {
-            root.displayPrayerTimes = {defaultTimesStructure, apiGregorianDate: (root.times && root.times.apiGregorianDate) || defaultTimesStructure.apiGregorianDate }
+            root.displayPrayerTimes = Object.assign({}, defaultTimesStructure, { apiGregorianDate: (root.times && root.times.apiGregorianDate) || defaultTimesStructure.apiGregorianDate })
         } else {
             let newDisplayTimes = {}
             const prayerKeys = ["Fajr", "Sunrise", "Dhuhr", "Asr", "Maghrib", "Isha", "Midnight", "Lastthird"]
@@ -1214,39 +1214,33 @@ PlasmoidItem {
             let lat = parseFloat(latStr); if (isNaN(lat)) lat = 21.4225
             let lng = parseFloat(lngStr); if (isNaN(lng)) lng = 39.8262
 
-            if (true) {
-                let timeZoneOffset = -new Date().getTimezoneOffset() / 60
-                let method = Plasmoid.configuration.method !== undefined ? Plasmoid.configuration.method : 3
-                let school = Plasmoid.configuration.school !== undefined ? Plasmoid.configuration.school : 0
-                
-                root.times = OfflineCalc.getTimes(new Date(), lat, lng, timeZoneOffset, method, school)
-                root.times.apiGregorianDate = getFormattedDate(new Date())
-                processRawTimesAndApplyOffsets()
-                
-                let hAdj = Plasmoid.configuration.hijriOffset || 0
-                let hDate = OfflineCalc.getHijriDate(new Date(), hAdj)
-                root.currentHijriDay = hDate.day
-                root.currentHijriMonth = hDate.month
-                root.currentHijriYear = hDate.year
+            let timeZoneOffset = -new Date().getTimezoneOffset() / 60
+            let method = Plasmoid.configuration.method !== undefined ? Plasmoid.configuration.method : 3
+            let school = Plasmoid.configuration.school !== undefined ? Plasmoid.configuration.school : 0
 
-                let arMonths = ["محرم", "صفر", "ربيع الأول", "ربيع الآخر", "جمادى الأولى", "جمادى الآخرة", "رجب", "شعبان", "رمضان", "شوال", "ذو القعدة", "ذو الحجة"]
-                let enMonths = ["Muharram", "Safar", "Rabi Al-Awwal", "Rabi Al-Akhar", "Jumada Al-Awwal", "Jumada Al-Akhirah", "Rajab", "Shaban", "Ramadan", "Shawwal", "Dhu Al-Qidah", "Dhu Al-Hijjah"]
-                let monthName = root.languageIndex === 1 ? arMonths[hDate.month - 1] : enMonths[hDate.month - 1]
-                
-                root.hijriDateDisplay = hDate.day + " " + monthName + " " + hDate.year + " " + (root.languageIndex === 1 ? "هـ" : "AH")
-                updateSpecialIslamicDateMessage()
-            } else {
-                root.times = {}; processRawTimesAndApplyOffsets()
-                root.hijriDateDisplay = i18n("Offline - Set Coordinates")
-                root.specialIslamicDateMessage = ""
-            }
+            root.times = OfflineCalc.getTimes(new Date(), lat, lng, timeZoneOffset, method, school)
+            root.times.apiGregorianDate = getFormattedDate(new Date())
+            processRawTimesAndApplyOffsets()
+
+            let hAdj = Plasmoid.configuration.hijriOffset || 0
+            let hDate = OfflineCalc.getHijriDate(new Date(), hAdj)
+            root.currentHijriDay = hDate.day
+            root.currentHijriMonth = hDate.month
+            root.currentHijriYear = hDate.year
+
+            let arMonths = ["محرم", "صفر", "ربيع الأول", "ربيع الآخر", "جمادى الأولى", "جمادى الآخرة", "رجب", "شعبان", "رمضان", "شوال", "ذو القعدة", "ذو الحجة"]
+            let enMonths = ["Muharram", "Safar", "Rabi Al-Awwal", "Rabi Al-Akhar", "Jumada Al-Awwal", "Jumada Al-Akhirah", "Rajab", "Shaban", "Ramadan", "Shawwal", "Dhu Al-Qidah", "Dhu Al-Hijjah"]
+            let monthName = root.languageIndex === 1 ? arMonths[hDate.month - 1] : enMonths[hDate.month - 1]
+
+            root.hijriDateDisplay = hDate.day + " " + monthName + " " + hDate.year + " " + (root.languageIndex === 1 ? "هـ" : "AH")
+            updateSpecialIslamicDateMessage()
         }
     }
 
     // =========================================================================
     // QURAN AUDIO PREDICTIVE ROUTING HELPERS
     // =========================================================================
-    
+
     function padZero(num) {
         var s = num + "";
         while (s.length < 3) s = "0" + s;
@@ -1363,13 +1357,13 @@ PlasmoidItem {
             return
         }
         let targetReciter = root.activeReciterIdentifier
-        
+
         let coords = globalAyahToSurahAyah(ayahNumber);
         let sNum = coords.surahNumber;
         let aNum = coords.ayahNumber;
-        
+
         let finalUrl = getPredictableAudioUrl(targetReciter, sNum, aNum);
-        
+
         if (aNum === 1 && sNum !== 1 && sNum !== 9) {
             root.storedVerseUrlForAfterBasmalah = finalUrl;
             root.nextTrackIsBasmalah = true;
@@ -1414,7 +1408,7 @@ PlasmoidItem {
         if (!Plasmoid.configuration.forceOfflineMode && !Plasmoid.configuration.useCoordinates && (Plasmoid.configuration.city === "" || Plasmoid.configuration.city === undefined)) {
             console.log("First run detected. Auto-detecting location from IP...");
             let xhr = new XMLHttpRequest();
-            xhr.open("GET", "http://ip-api.com/json/", true);
+            xhr.open("GET", "https://ip-api.com/json/", true);
             xhr.onreadystatechange = function() {
                 if (xhr.readyState === 4 && xhr.status === 200) {
                     try {
@@ -1422,10 +1416,10 @@ PlasmoidItem {
                         if (data.city) Plasmoid.configuration.city = data.city;
                         if (data.country) {
                             Plasmoid.configuration.country = data.country;
-                            
+
                             let c = data.country.toLowerCase();
                             let methodIndex = 3; // Default to MWL
-                            
+
                             if (c.includes("egypt")) methodIndex = 5;
                             else if (c.includes("morocco")) methodIndex = 14;
                             else if (c.includes("pakistan") || c.includes("bangladesh") || c.includes("india") || c.includes("afghanistan")) methodIndex = 1;
@@ -1446,7 +1440,7 @@ PlasmoidItem {
                             else if (c.includes("indonesia")) methodIndex = 19;
                             else if (c.includes("portugal")) methodIndex = 20;
                             else if (c.includes("jordan")) methodIndex = 21;
-                            
+
                             Plasmoid.configuration.method = methodIndex;
                         }
                         if (data.lat && data.lon) {
@@ -1471,7 +1465,7 @@ PlasmoidItem {
                 if (key === "useCoordinates") root.useCoordinates = Plasmoid.configuration.useCoordinates || false
                 else if (key === "latitude") root.latitude = Plasmoid.configuration.latitude || ""
                 else if (key === "longitude") root.longitude = Plasmoid.configuration.longitude || ""
-                
+
                 // Invalidate cache and debounce the network fetch to avoid race condition and rate-limiting
                 cacheSettings.cacheData = "{}"
                 cacheSettings.lastCacheUpdate = 0
