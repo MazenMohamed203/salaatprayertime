@@ -53,6 +53,12 @@
     <entry name="showLastThird" type="Bool">
       <default>false</default>
     </entry>
+    <entry name="showEmojis" type="Bool">
+      <default>true</default>
+    </entry>
+    <entry name="enablePrePrayerGlow" type="Bool">
+      <default>true</default>
+    </entry>
     <entry name="playPreAdhanSound" type="Bool">
       <default>false</default>
       <label>Play a sound for the pre-Adhan reminder notification.</label>
@@ -121,15 +127,11 @@
     <entry name="showBackground" type="Bool">
       <default>true</default>
     </entry>
-
-    <entry name="showPrayerEmojis" type="Bool">
-      <default>true</default>
-    </entry>
-
+    
     <entry name="isOfflineFallback" type="Bool">
       <default>false</default>
     </entry>
-
+    
     <entry name="forceOfflineMode" type="Bool">
       <default>false</default>
     </entry>
