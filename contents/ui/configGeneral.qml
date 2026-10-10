@@ -125,6 +125,12 @@ KCM.SimpleKCM {
     // INTERNAL DATA & LOGIC
     // ============================================================
 
+    function t(enText, arText, trText) {
+        if (languageCombo.currentIndex === 1) return arText;
+        if (languageCombo.currentIndex === 2) return trText;
+        return enText;
+    }
+
     function autoSelectMethod(country) {
         if (!country) return;
         let c = country.toLowerCase();
@@ -174,19 +180,19 @@ KCM.SimpleKCM {
     }
 
     property var reciterNamesModel: [
-        {en: "Minshawi (Murattal)", ar: "المنشاوي (مرتل)"},
-        {en: "Alafasy", ar: "العفاسي"},
-        {en: "Husary (Murattal)", ar: "الحصري (مرتل)"},
-        {en: "Abdurrahmaan As-Sudais", ar: "عبد الرحمن السديس"},
-        {en: "Maher Al Muaiqly", ar: "ماهر المعيقلي"},
-        {en: "Abu Bakr Ash-Shaatree", ar: "أبو بكر الشاطري"},
-        {en: "Abdullah Basfar", ar: "عبد الله بصفر"},
-        {en: "Abdulbasit (Murattal)", ar: "عبد الباسط (مرتل)"},
-        {en: "Hudhaify", ar: "الحذيفي"},
-        {en: "Muhammad Jibreel", ar: "محمد جبريل"},
-        {en: "Husary (Mujawwad)", ar: "الحصري (مجود)"},
-        {en: "Minshawi (Mujawwad)", ar: "المنشاوي (مجود)"},
-        {en: "Ahmed ibn Ali al-Ajamy", ar: "أحمد بن علي العجمي"}
+        {en: "Minshawi (Murattal)", ar: "المنشاوي (مرتل)", tr: "Minşavi (Murattal)"},
+        {en: "Alafasy", ar: "العفاسي", tr: "Afasi"},
+        {en: "Husary (Murattal)", ar: "الحصري (مرتل)", tr: "Husari (Murattal)"},
+        {en: "Abdurrahmaan As-Sudais", ar: "عبد الرحمن السديس", tr: "Abdurrahman es-Sudeys"},
+        {en: "Maher Al Muaiqly", ar: "ماهر المعيقلي", tr: "Mahir el-Muaykili"},
+        {en: "Abu Bakr Ash-Shaatree", ar: "أبو بكر الشاطري", tr: "Ebu Bekir eş-Şatri"},
+        {en: "Abdullah Basfar", ar: "عبد الله بصفر", tr: "Abdullah Basfar"},
+        {en: "Abdulbasit (Murattal)", ar: "عبد الباسط (مرتل)", tr: "Abdülbasit (Murattal)"},
+        {en: "Hudhaify", ar: "الحذيفي", tr: "Huzeyfi"},
+        {en: "Muhammad Jibreel", ar: "محمد جبريل", tr: "Muhammed Cibril"},
+        {en: "Husary (Mujawwad)", ar: "الحصري (مجود)", tr: "Husari (Mücevved)"},
+        {en: "Minshawi (Mujawwad)", ar: "المنشاوي (مجود)", tr: "Minşavi (Mücevved)"},
+        {en: "Ahmed ibn Ali al-Ajamy", ar: "أحمد بن علي العجمي", tr: "Ahmed el-Acemi"}
     ]
 
     property string defaultAdhanPath: {
@@ -216,7 +222,7 @@ KCM.SimpleKCM {
     // File Dialog
     FileDialog {
         id: fileDialog
-        title: languageCombo.currentIndex === 1 ? "اختر ملف صوت الأذان" : "Select Adhan Audio File"
+        title: t("Select Adhan Audio File", "اختر ملف صوت الأذان", "Ezan Ses Dosyası Seç")
         nameFilters: [ "Audio files (*.mp3 *.wav *.ogg *.m4a *.flac)", "All files (*)" ]
         onAccepted: {
             let path = selectedFile.toString()
@@ -243,16 +249,16 @@ KCM.SimpleKCM {
             Layout.fillWidth: true
             visible: cfg_isOfflineFallback === true && !forceOfflineCheck.checked
             type: Kirigami.MessageType.Warning
-            text: languageCombo.currentIndex === 1 ? "أنت في وضع عدم الاتصال (أول تشغيل). يرجى إدخال إحداثياتك أدناه لحساب أوقات الصلاة محلياً، أو الاتصال بالإنترنت." : "Offline Mode (First Run). Please enter your coordinates below to calculate prayer times locally, or connect to the internet."
+            text: t("Offline Mode (First Run). Please enter your coordinates below to calculate prayer times locally, or connect to the internet.", "أنت في وضع عدم الاتصال (أول تشغيل). يرجى إدخال إحداثياتك أدناه لحساب أوقات الصلاة محلياً، أو الاتصال بالإنترنت.", "Çevrimdışı Mod (İlk Çalıştırma). Vakitleri yerel olarak hesaplamak için lütfen koordinatlarınızı girin veya internete bağlanın.")
         }
 
         // --- SECTION 1: LOCATION ---
-        Kirigami.Separator { Kirigami.FormData.label: languageCombo.currentIndex === 1 ? "الموقع" : "Location"; Kirigami.FormData.isSection: true }
+        Kirigami.Separator { Kirigami.FormData.label: t("Location", "الموقع", "Konum"); Kirigami.FormData.isSection: true }
 
         CheckBox {
             id: useCoordsCheck
-            text: languageCombo.currentIndex === 1 ? "استخدام الإحداثيات الدقيقة (موصى به)" : "Use Exact Coordinates (Recommended)"
-            Kirigami.FormData.label: languageCombo.currentIndex === 1 ? "طريقة التحديد:" : "Method:"
+            text: t("Use Exact Coordinates (Recommended)", "استخدام الإحداثيات الدقيقة (موصى به)", "Hassas Koordinatları Kullan (Önerilen)")
+            Kirigami.FormData.label: t("Method:", "طريقة التحديد:", "Yöntem:")
             enabled: !cfg_isOfflineFallback && !forceOfflineCheck.checked
             Component.onCompleted: {
                 if (cfg_isOfflineFallback === true || forceOfflineCheck.checked) checked = true;
@@ -261,7 +267,7 @@ KCM.SimpleKCM {
 
         RowLayout {
             visible: useCoordsCheck.checked
-            Kirigami.FormData.label: languageCombo.currentIndex === 1 ? "الإحداثيات:" : "Coordinates:"
+            Kirigami.FormData.label: t("Coordinates:", "الإحداثيات:", "Koordinatlar:")
             
             Timer {
                 id: coordsDebounceTimer
@@ -271,14 +277,14 @@ KCM.SimpleKCM {
 
             TextField { 
                 id: latField
-                placeholderText: languageCombo.currentIndex === 1 ? "خط العرض" : "Latitude"
+                placeholderText: t("Latitude", "خط العرض", "Enlem")
                 validator: DoubleValidator { bottom: -90.0; top: 90.0; decimals: 15 }
                 onTextChanged: coordsDebounceTimer.restart()
                 onEditingFinished: coordsDebounceTimer.restart()
             }
             TextField { 
                 id: longField
-                placeholderText: languageCombo.currentIndex === 1 ? "خط الطول" : "Longitude"
+                placeholderText: t("Longitude", "خط الطول", "Boylam")
                 validator: DoubleValidator { bottom: -180.0; top: 180.0; decimals: 15 }
                 onTextChanged: coordsDebounceTimer.restart()
                 onEditingFinished: coordsDebounceTimer.restart()
@@ -288,19 +294,19 @@ KCM.SimpleKCM {
         TextField {
             id: cityField
             visible: !useCoordsCheck.checked && !forceOfflineCheck.checked
-            Kirigami.FormData.label: languageCombo.currentIndex === 1 ? "المدينة:" : "City:"
-            placeholderText: languageCombo.currentIndex === 1 ? "مثال: القاهرة" : "e.g. Cairo"
+            Kirigami.FormData.label: t("City:", "المدينة:", "Şehir:")
+            placeholderText: t("e.g. Cairo", "مثال: القاهرة", "Örn: İstanbul")
         }
         TextField {
             id: countryField
             visible: !useCoordsCheck.checked && !forceOfflineCheck.checked
-            Kirigami.FormData.label: languageCombo.currentIndex === 1 ? "الدولة:" : "Country:"
-            placeholderText: languageCombo.currentIndex === 1 ? "مثال: مصر" : "e.g. Egypt"
+            Kirigami.FormData.label: t("Country:", "الدولة:", "Ülke:")
+            placeholderText: t("e.g. Egypt", "مثال: مصر", "Örn: Türkiye")
             onTextChanged: root.autoSelectMethod(text)
         }
 
         Button {
-            text: languageCombo.currentIndex === 1 ? "اكتشاف الموقع تلقائياً (عبر الإنترنت)" : "Auto-Detect Location (IP)"
+            text: t("Auto-Detect Location (IP)", "اكتشاف الموقع تلقائياً (عبر الإنترنت)", "Konumu Otomatik Bul (IP)")
             icon.name: "system-search"
             enabled: !cfg_isOfflineFallback && !forceOfflineCheck.checked
             Kirigami.FormData.label: "" // Aligns it properly under the fields
@@ -335,128 +341,128 @@ KCM.SimpleKCM {
 
         ComboBox {
             id: methodCombo
-            Kirigami.FormData.label: languageCombo.currentIndex === 1 ? "طريقة الحساب:" : "Calculation Method:"
-            textRole: languageCombo.currentIndex === 1 ? "ar" : "en"
+            Kirigami.FormData.label: t("Calculation Method:", "طريقة الحساب:", "Hesaplama Yöntemi:")
+            textRole: languageCombo.currentIndex === 1 ? "ar" : (languageCombo.currentIndex === 2 ? "tr" : "en")
             model: [
-                { ar: "الشيعة الاثنا عشرية", en: "Shia Ithna-Ansari" },
-                { ar: "جامعة العلوم الإسلامية بكراتشي", en: "University of Islamic Sciences, Karachi" },
-                { ar: "الجمعية الإسلامية لأمريكا الشمالية", en: "Islamic Society of North America" },
-                { ar: "رابطة العالم الإسلامي", en: "Muslim World League" },
-                { ar: "جامعة أم القرى بمكة المكرمة", en: "Umm Al-Qura University, Makkah" },
-                { ar: "الهيئة العامة المصرية للمساحة", en: "Egyptian General Authority of Survey" },
-                { ar: "معهد الجيوفيزياء بجامعة طهران", en: "Institute of Geophysics, University of Tehran" },
-                { ar: "منطقة الخليج", en: "Gulf Region" },
-                { ar: "الكويت", en: "Kuwait" },
-                { ar: "قطر", en: "Qatar" },
-                { ar: "مجلس الشؤون الإسلامية بسنغافورة", en: "Majlis Ugama Islam Singapura, Singapore" },
-                { ar: "اتحاد المنظمات الإسلامية بفرنسا", en: "Union Organization islamic de France" },
-                { ar: "رئاسة الشؤون الدينية التركية", en: "Diyanet Isleri Baskanligi, Turkey" },
-                { ar: "الإدارة الدينية لمسلمي روسيا", en: "Spiritual Administration of Muslims of Russia" },
-                { ar: "المغرب", en: "Morocco" },
-                { ar: "دبي", en: "Dubai" },
-                { ar: "إدارة التنمية الإسلامية الماليزية", en: "Jabatan Kemajuan Islam Malaysia (JAKIM)" },
-                { ar: "تونس", en: "Tunisia" },
-                { ar: "الجزائر", en: "Algeria" },
-                { ar: "وزارة الشؤون الدينية في إندونيسيا", en: "Kementerian Agama Republik Indonesia" },
-                { ar: "الجماعة الإسلامية في لشبونة (البرتغال)", en: "Comunidade Islamica de Lisboa (Portugal)" },
-                { ar: "وزارة الأوقاف والشؤون والمقدسات الإسلامية الأردنية", en: "Ministry of Awqaf, Jordan" }
+                { ar: "الشيعة الاثنا عشرية", en: "Shia Ithna-Ansari", tr: "Şii İsnaaşeriyye" },
+                { ar: "جامعة العلوم الإسلامية بكراتشي", en: "University of Islamic Sciences, Karachi", tr: "Karaçi İslam İlimleri Üniversitesi" },
+                { ar: "الجمعية الإسلامية لأمريكا الشمالية", en: "Islamic Society of North America", tr: "Kuzey Amerika İslam Toplumu (ISNA)" },
+                { ar: "رابطة العالم الإسلامي", en: "Muslim World League", tr: "Dünya İslam Birliği (Rabıta)" },
+                { ar: "جامعة أم القرى بمكة المكرمة", en: "Umm Al-Qura University, Makkah", tr: "Ümmü'l-Kurâ Üniversitesi, Mekke" },
+                { ar: "الهيئة العامة المصرية للمساحة", en: "Egyptian General Authority of Survey", tr: "Mısır Genel Araştırma Kurumu" },
+                { ar: "معهد الجيوفيزياء بجامعة طهران", en: "Institute of Geophysics, University of Tehran", tr: "Tahran Üniversitesi Jeofizik Enstitüsü" },
+                { ar: "منطقة الخليج", en: "Gulf Region", tr: "Körfez Bölgesi" },
+                { ar: "الكويت", en: "Kuwait", tr: "Kuveyt" },
+                { ar: "قطر", en: "Qatar", tr: "Katar" },
+                { ar: "مجلس الشؤون الإسلامية بسنغافورة", en: "Majlis Ugama Islam Singapura, Singapore", tr: "Singapur İslam Meclisi (MUIS)" },
+                { ar: "اتحاد المنظمات الإسلامية بفرنسا", en: "Union Organization islamic de France", tr: "Fransa İslam Kuruluşları Birliği (UOIF)" },
+                { ar: "رئاسة الشؤون الدينية التركية", en: "Diyanet Isleri Baskanligi, Turkey", tr: "Diyanet İşleri Başkanlığı, Türkiye" },
+                { ar: "الإدارة الدينية لمسلمي روسيا", en: "Spiritual Administration of Muslims of Russia", tr: "Rusya Müslümanları Dini İdaresi" },
+                { ar: "المغرب", en: "Morocco", tr: "Fas" },
+                { ar: "دبي", en: "Dubai", tr: "Dubai" },
+                { ar: "إدارة التنمية الإسلامية الماليزية", en: "Jabatan Kemajuan Islam Malaysia (JAKIM)", tr: "Malezya İslam Gelişimi Departmanı (JAKIM)" },
+                { ar: "تونس", en: "Tunisia", tr: "Tunus" },
+                { ar: "الجزائر", en: "Algeria", tr: "Cezayir" },
+                { ar: "وزارة الشؤون الدينية في إندونيسيا", en: "Kementerian Agama Republik Indonesia", tr: "Endonezya Din İşleri Bakanlığı" },
+                { ar: "الجماعة الإسلامية في لشبونة (البرتغال)", en: "Comunidade Islamica de Lisboa (Portugal)", tr: "Lizbon İslam Toplumu (Portekiz)" },
+                { ar: "وزارة الأوقاف والشؤون والمقدسات الإسلامية الأردنية", en: "Ministry of Awqaf, Jordan", tr: "Ürdün Evkaf Bakanlığı" }
             ]
         }
         ComboBox { 
             id: schoolCombo
-            Kirigami.FormData.label: languageCombo.currentIndex === 1 ? "المذهب الفقهي (العصر):" : "School (Juristic):"
-            textRole: languageCombo.currentIndex === 1 ? "ar" : "en"
+            Kirigami.FormData.label: t("School (Juristic):", "المذهب الفقهي (العصر):", "Mezhep (İkindi Vakti):")
+            textRole: languageCombo.currentIndex === 1 ? "ar" : (languageCombo.currentIndex === 2 ? "tr" : "en")
             model: [
-                { ar: "الشافعي / الحنبلي / المالكي (القياسي)", en: "Shafi (Standard)" },
-                { ar: "الحنفي", en: "Hanafi" }
+                { ar: "الشافعي / الحنبلي / المالكي (القياسي)", en: "Shafi (Standard)", tr: "Şafi / Hanbeli / Maliki (Standart)" },
+                { ar: "الحنفي", en: "Hanafi", tr: "Hanefi" }
             ]
         }
         Label {
-            text: languageCombo.currentIndex === 1 ? "يؤثر على موعد صلاة العصر" : "This setting mainly affects Asr's time"
+            text: t("This setting mainly affects Asr's time", "يؤثر على موعد صلاة العصر", "Bu ayar sadece ikindi vaktini etkiler")
             font.italic: true
             Layout.fillWidth: true
             opacity: 0.7
         }
 
         // --- SECTION 2: APPEARANCE & NOTIFICATIONS ---
-        Kirigami.Separator { Kirigami.FormData.label: languageCombo.currentIndex === 1 ? "الإعدادات العامة" : "General Settings"; Kirigami.FormData.isSection: true }
+        Kirigami.Separator { Kirigami.FormData.label: t("General Settings", "الإعدادات العامة", "Genel Ayarlar"); Kirigami.FormData.isSection: true }
 
         ComboBox {
             id: compactStyleCombo
-            Kirigami.FormData.label: languageCombo.currentIndex === 1 ? "شكل العرض المصغر:" : "Compact View Style:"
-            textRole: languageCombo.currentIndex === 1 ? "ar" : "en"
+            Kirigami.FormData.label: t("Compact View Style:", "شكل العرض المصغر:", "Panel Görünüm Stili:")
+            textRole: languageCombo.currentIndex === 1 ? "ar" : (languageCombo.currentIndex === 2 ? "tr" : "en")
             model: [
-                { ar: "رأسي (قياسي)", en: "Vertical Standard" },
-                { ar: "جنبا إلى جنب", en: "Side by Side" },
-                { ar: "تبديل رأسي", en: "Toggle Vertical" },
-                { ar: "تبديل أفقي", en: "Toggle Horizontal" },
-                { ar: "أفقي متبقي", en: "Horizontal Remaining" },
-                { ar: "أفقي(قياسي)", en: "Horizontal Single Line" }
+                { ar: "رأسي (قياسي)", en: "Vertical Standard", tr: "Dikey (Standart)" },
+                { ar: "جنبا إلى جنب", en: "Side by Side", tr: "Yan Yana" },
+                { ar: "تبديل رأسي", en: "Toggle Vertical", tr: "Dikey Dönüşümlü" },
+                { ar: "تبديل أفقي", en: "Toggle Horizontal", tr: "Yatay Dönüşümlü" },
+                { ar: "أفقي متبقي", en: "Horizontal Remaining", tr: "Yatay Kalan Süre" },
+                { ar: "أفقي(قياسي)", en: "Horizontal Single Line", tr: "Yatay Tek Satır" }
             ]
         }
         ComboBox {
             id: languageCombo;
-            Kirigami.FormData.label: languageCombo.currentIndex === 1 ? "اللغة:" : "Language:";
-            model: ["English", "العربية (Arabic)"]
+            Kirigami.FormData.label: t("Language:", "اللغة:", "Dil:");
+            model: ["English", "العربية (Arabic)", "Türkçe (Turkish)"]
         }
         CheckBox {
             id: useArabicNumbersCheck
-            text: languageCombo.currentIndex === 1 ? "تدوين الأرقام بالصيغة العربية (٠١٢٣٤٥٦٧٨٩)" : "Use Arabic-Indic Numerals for dates and times"
+            text: t("Use Arabic-Indic Numerals for dates and times", "تدوين الأرقام بالصيغة العربية (٠١٢٣٤٥٦٧٨٩)", "Arapça rakamları kullan")
             Kirigami.FormData.label: ""
             visible: languageCombo.currentIndex === 1
         }
-        CheckBox { id: hourFormatCheck; text: languageCombo.currentIndex === 1 ? "نظام 12 ساعة (ص/م)" : "Use 12-hour format (AM/PM)"; Kirigami.FormData.label: languageCombo.currentIndex === 1 ? "تنسيق الوقت:" : "Time Format:" }
+        CheckBox { id: hourFormatCheck; text: t("Use 12-hour format (AM/PM)", "نظام 12 ساعة (ص/م)", "12 saat biçimini kullan (ÖÖ/ÖS)"); Kirigami.FormData.label: t("Time Format:", "تنسيق الوقت:", "Saat Biçimi:") }
         CheckBox {
             id: showEmojisCheck
-            text: languageCombo.currentIndex === 1 ? "إظهار الرموز التعبيرية للصلوات (إيموجي) في القائمة المنسدلة" : "Show emojis in prayer list"
+            text: t("Show emojis in prayer list", "إظهار الرموز التعبيرية للصلوات (إيموجي) في القائمة المنسدلة", "Vakit listesinde emojileri göster")
             Kirigami.FormData.label: ""
         }
         CheckBox {
             id: enablePrePrayerGlowCheck
-            text: languageCombo.currentIndex === 1 ? "تفعيل الوميض الأصفر قبل الصلاة بـ 5 دقائق" : "Enable 5-minute pre-prayer yellow glow"
+            text: t("Enable 5-minute pre-prayer yellow glow", "تفعيل الوميض الأصفر قبل الصلاة بـ 5 دقائق", "Vakitten 5 dakika önce sarı uyarı parlamasını etkinleştir")
             Kirigami.FormData.label: ""
         }
 
-        Kirigami.Separator { Kirigami.FormData.label: languageCombo.currentIndex === 1 ? "التنبيهات" : "Notifications"; Kirigami.FormData.isSection: true }
+        Kirigami.Separator { Kirigami.FormData.label: t("Notifications", "التنبيهات", "Bildirimler"); Kirigami.FormData.isSection: true }
 
         CheckBox {
             id: notificationsCheck
-            text: languageCombo.currentIndex === 1 ? "إظهار إشعار عند دخول وقت الصلاة" : "Show notification on exact prayer time"
-            Kirigami.FormData.label: languageCombo.currentIndex === 1 ? "التنبيه الأساسي:" : "Main Alert:"
+            text: t("Show notification on exact prayer time", "إظهار إشعار عند دخول وقت الصلاة", "Vakit girdiğinde bildirim göster")
+            Kirigami.FormData.label: t("Main Alert:", "التنبيه الأساسي:", "Ana Uyarı:")
         }
 
         ColumnLayout {
-            Kirigami.FormData.label: languageCombo.currentIndex === 1 ? "قبل الأذان:" : "Pre-Adhan:"
+            Kirigami.FormData.label: t("Pre-Adhan:", "قبل الأذان:", "Ezandan Önce:")
             spacing: 0
             RowLayout {
                 TextField {
                     id: preNotificationTextField
                     placeholderText: "5, 10, 20"
                 }
-                Label { text: languageCombo.currentIndex === 1 ? "دقائق قبل الصلاة" : "minutes before" }
+                Label { text: t("minutes before", "دقائق قبل الصلاة", "dakika önce") }
             }
             Label { 
-                text: languageCombo.currentIndex === 1 ? "لإضافة عدة تنبيهات اكتب: 5, 10, 15" : "to add multiple times type: 5, 10, 15"
+                text: t("to add multiple times type: 5, 10, 15", "لإضافة عدة تنبيهات اكتب: 5, 10, 15", "Birden fazla vakit için virgülle ayırın: 5, 10, 15")
                 font.pixelSize: Kirigami.Theme.smallFont.pixelSize
                 opacity: 0.7
             }
             CheckBox {
                 id: preAdhanSoundCheck
-                text: languageCombo.currentIndex === 1 ? "تشغيل صوت التنبيه" : "Play notification sound"
+                text: t("Play notification sound", "تشغيل صوت التنبيه", "Bildirim sesini çal")
                 enabled: preNotificationTextField.text.trim().length > 0
             }
         }
 
         ColumnLayout {
-            Kirigami.FormData.label: languageCombo.currentIndex === 1 ? "الإقامة (بعد الأذان):" : "Iqamah (Post-Adhan):"
+            Kirigami.FormData.label: t("Iqamah (Post-Adhan):", "الإقامة (بعد الأذان):", "Kamet (Ezandan Sonra):")
             spacing: 0
             RowLayout {
                 SpinBox { id: postNotificationSpinBox; from: 0; to: 60 }
-                Label { text: languageCombo.currentIndex === 1 ? "دقيقة بعد الأذان" : "minutes after" }
+                Label { text: t("minutes after", "دقيقة بعد الأذان", "dakika sonra") }
             }
             CheckBox {
                 id: postAdhanSoundCheck
-                text: languageCombo.currentIndex === 1 ? "تشغيل صوت التنبيه" : "Play notification sound"
+                text: t("Play notification sound", "تشغيل صوت التنبيه", "Bildirim sesini çal")
                 enabled: postNotificationSpinBox.value > 0
             }
         }
@@ -464,68 +470,68 @@ KCM.SimpleKCM {
         // ==========================================
         // WIDGET FEATURES
         // ==========================================
-        Kirigami.Separator { Kirigami.FormData.label: languageCombo.currentIndex === 1 ? "ميزات الإضافة" : "Widget Features"; Kirigami.FormData.isSection: true }
+        Kirigami.Separator { Kirigami.FormData.label: t("Widget Features", "ميزات الإضافة", "Genişletilmiş Özellikler"); Kirigami.FormData.isSection: true }
 
         ColumnLayout {
-            Kirigami.FormData.label: languageCombo.currentIndex === 1 ? "القرآن الكريم:" : "Quran:"
+            Kirigami.FormData.label: t("Quran:", "القرآن الكريم:", "Kur'an-ı Kerim:")
             spacing: 0
             CheckBox {
                 id: enableQuranCheck
-                text: languageCombo.currentIndex === 1 ? "تفعيل مشغل القرآن والآية اليومية" : "Enable Quran Player & Daily Verse"
+                text: t("Enable Quran Player & Daily Verse", "تفعيل مشغل القرآن والآية اليومية", "Kur'an Oynatıcıyı ve Günün Ayetini etkinleştir")
             }
             CheckBox {
                 id: showCompactMediaCheck
-                text: languageCombo.currentIndex === 1 ? "إظهار زر التشغيل/الإيقاف في العرض المصغر" : "Show Play/Pause button in compact view"
+                text: t("Show Play/Pause button in compact view", "إظهار زر التشغيل/الإيقاف في العرض المصغر", "Panel görünümünde Oynat/Duraklat butonunu göster")
                 enabled: enableQuranCheck.checked
             }
         }
 
         ColumnLayout {
-            Kirigami.FormData.label: languageCombo.currentIndex === 1 ? "أوقات الصلاة الإضافية:" : "Extra Prayer Times:"
+            Kirigami.FormData.label: t("Extra Prayer Times:", "أوقات الصلاة الإضافية:", "Ek Vakitler:")
             spacing: 0
             CheckBox {
                 id: showMidnightCheck
-                text: languageCombo.currentIndex === 1 ? "إظهار منتصف الليل" : "Show Midnight"
+                text: t("Show Midnight", "إظهار منتصف الليل", "Gece Yarısını Göster")
             }
             CheckBox {
                 id: showLastThirdCheck
-                text: languageCombo.currentIndex === 1 ? "إظهار الثلث الأخير من الليل" : "Show Last Third of Night"
+                text: t("Show Last Third of Night", "إظهار الثلث الأخير من الليل", "Gecenin Son Üçte Birini Göster")
             }
         }
 
         // --- SECTION 3: AUDIO & ADHAN ---
-        Kirigami.Separator { Kirigami.FormData.label: languageCombo.currentIndex === 1 ? "الصوتيات والأذان" : "Audio & Adhan"; Kirigami.FormData.isSection: true }
+        Kirigami.Separator { Kirigami.FormData.label: t("Audio & Adhan", "الصوتيات والأذان", "Ses ve Ezan"); Kirigami.FormData.isSection: true }
 
         ComboBox {
             id: reciterCombo
-            Kirigami.FormData.label: languageCombo.currentIndex === 1 ? "القارئ:" : "Quran Reciter:"
-            textRole: languageCombo.currentIndex === 1 ? "ar" : "en"
+            Kirigami.FormData.label: t("Quran Reciter:", "القارئ:", "Kur'an Okuyucusu:")
+            textRole: languageCombo.currentIndex === 1 ? "ar" : (languageCombo.currentIndex === 2 ? "tr" : "en")
             model: reciterNamesModel
         }
 
         RowLayout {
-            Kirigami.FormData.label: languageCombo.currentIndex === 1 ? "ملف الأذان الصوتي:" : "Adhan Audio File:"
+            Kirigami.FormData.label: t("Adhan Audio File:", "ملف الأذان الصوتي:", "Ezan Ses Dosyası:")
             TextField {
                 id: adhanPathField
                 Layout.fillWidth: true
-                placeholderText: languageCombo.currentIndex === 1 ? "استخدام الأذان الافتراضي..." : "Using default adhan..."
+                placeholderText: t("Using default adhan...", "استخدام الأذان الافتراضي...", "Varsayılan ezan kullanılıyor...")
             }
             Button {
-                text: languageCombo.currentIndex === 1 ? "تصفح..." : "Browse..."; icon.name: "document-open"
+                text: t("Browse...", "تصفح...", "Gözat..."); icon.name: "document-open"
                 onClicked: fileDialog.open()
             }
             Button {
-                text: languageCombo.currentIndex === 1 ? "استعادة" : "Reset"; icon.name: "edit-clear"
+                text: t("Reset", "استعادة", "Sıfırla"); icon.name: "edit-clear"
                 onClicked: adhanPathField.text = defaultAdhanPath
             }
             Button {
-                text: languageCombo.currentIndex === 1 ? "مسح" : "Clear"; enabled: adhanPathField.text.length > 0
+                text: t("Clear", "مسح", "Temizle"); enabled: adhanPathField.text.length > 0
                 onClicked: adhanPathField.text = ""
             }
         }
 
         Button {
-            text: previewPlayer.playbackState === MediaPlayer.PlayingState ? (languageCombo.currentIndex === 1 ? "إيقاف الأذان" : "Stop Adhan") : (languageCombo.currentIndex === 1 ? "تجربة صوت الأذان" : "Test Adhan Sound")
+            text: previewPlayer.playbackState === MediaPlayer.PlayingState ? t("Stop Adhan", "إيقاف الأذان", "Ezanı Durdur") : t("Test Adhan Sound", "تجربة صوت الأذان", "Ezan Sesini Sına")
             icon.name: previewPlayer.playbackState === MediaPlayer.PlayingState ? "media-playback-stop" : "media-playback-start"
             Kirigami.FormData.label: ""
             enabled: adhanModeCombo.currentIndex > 0
@@ -560,7 +566,7 @@ KCM.SimpleKCM {
         }
 
         RowLayout {
-            Kirigami.FormData.label: languageCombo.currentIndex === 1 ? "مستوى صوت الأذان:" : "Adhan Volume:"
+            Kirigami.FormData.label: t("Adhan Volume:", "مستوى صوت الأذان:", "Ezan Ses Düzeyi:")
             Slider {
                 id: adhanVolumeSlider
                 Layout.fillWidth: true
@@ -575,30 +581,30 @@ KCM.SimpleKCM {
 
         ComboBox {
             id: adhanModeCombo
-            Kirigami.FormData.label: languageCombo.currentIndex === 1 ? "صيغة التشغيل:" : "Adhan Playback:"
-            textRole: languageCombo.currentIndex === 1 ? "ar" : "en"
+            Kirigami.FormData.label: t("Adhan Playback:", "صيغة التشغيل:", "Ezan Oynatma:")
+            textRole: languageCombo.currentIndex === 1 ? "ar" : (languageCombo.currentIndex === 2 ? "tr" : "en")
             model: [
-                { ar: "بدون أذان", en: "No Adhan" },
-                { ar: "أذان كامل", en: "Full Adhan" },
-                { ar: "قصير (40 ثانية)", en: "Short (40s)" },
-                { ar: "قصير جداً (17 ثانية)", en: "Very Short (17s)" }
+                { ar: "بدون أذان", en: "No Adhan", tr: "Ezan Yok" },
+                { ar: "أذان كامل", en: "Full Adhan", tr: "Tam Ezan" },
+                { ar: "قصير (40 ثانية)", en: "Short (40s)", tr: "Kısa (40sn)" },
+                { ar: "قصير جداً (17 ثانية)", en: "Very Short (17s)", tr: "Çok Kısa (17sn)" }
             ]
         }
 
         GridLayout {
-            columns: 3; Kirigami.FormData.label: languageCombo.currentIndex === 1 ? "تشغيل الأذان لـ:" : "Play Adhan For:"
-            CheckBox { id: playFajrCheck; text: languageCombo.currentIndex === 1 ? "الفجر" : "Fajr" }
-            CheckBox { id: playDhuhrCheck; text: languageCombo.currentIndex === 1 ? "الظهر" : "Dhuhr" }
-            CheckBox { id: playAsrCheck; text: languageCombo.currentIndex === 1 ? "العصر" : "Asr" }
-            CheckBox { id: playMaghribCheck; text: languageCombo.currentIndex === 1 ? "المغرب" : "Maghrib" }
-            CheckBox { id: playIshaCheck; text: languageCombo.currentIndex === 1 ? "العشاء" : "Isha" }
+            columns: 3; Kirigami.FormData.label: t("Play Adhan For:", "تشغيل الأذان لـ:", "Ezanın Okunacağı Vakitler:")
+            CheckBox { id: playFajrCheck; text: t("Fajr", "الفجر", "İmsak") }
+            CheckBox { id: playDhuhrCheck; text: t("Dhuhr", "الظهر", "Öğle") }
+            CheckBox { id: playAsrCheck; text: t("Asr", "العصر", "İkindi") }
+            CheckBox { id: playMaghribCheck; text: t("Maghrib", "المغرب", "Akşam") }
+            CheckBox { id: playIshaCheck; text: t("Isha", "العشاء", "Yatsı") }
         }
 
         // --- SECTION 4: ADJUSTMENTS ---
-        Kirigami.Separator { Kirigami.FormData.label: languageCombo.currentIndex === 1 ? "التعديلات اليدوية" : "Adjustments"; Kirigami.FormData.isSection: true }
+        Kirigami.Separator { Kirigami.FormData.label: t("Adjustments", "التعديلات اليدوية", "Vakit Düzeltmeleri"); Kirigami.FormData.isSection: true }
 
         Label {
-            text: languageCombo.currentIndex === 1 ? "تعديل أوقات الصلاة بالدقائق (+/-)" : "Adjust times in minutes (+/-)"
+            text: t("Adjust times in minutes (+/-)", "تعديل أوقات الصلاة بالدقائق (+/-)", "Vakitleri dakika olarak düzelt (+/-)")
             font.italic: true
             Layout.fillWidth: true
             opacity: 0.7
@@ -609,49 +615,49 @@ KCM.SimpleKCM {
             rowSpacing: Kirigami.Units.smallSpacing
             columnSpacing: Kirigami.Units.largeSpacing
 
-            Label { text: languageCombo.currentIndex === 1 ? "الفجر:" : "Fajr:" }
+            Label { text: t("Fajr:", "الفجر:", "İmsak:") }
             SpinBox { id: fajrOffset; from: -60; to: 60; editable: true }
 
-            Label { text: languageCombo.currentIndex === 1 ? "الشروق:" : "Sunrise:" }
+            Label { text: t("Sunrise:", "الشروق:", "Güneş:") }
             SpinBox { id: sunriseOffset; from: -60; to: 60; editable: true }
 
-            Label { text: languageCombo.currentIndex === 1 ? "الظهر:" : "Dhuhr:" }
+            Label { text: t("Dhuhr:", "الظهر:", "Öğle:") }
             SpinBox { id: dhuhrOffset; from: -60; to: 60; editable: true }
 
-            Label { text: languageCombo.currentIndex === 1 ? "العصر:" : "Asr:" }
+            Label { text: t("Asr:", "العصر:", "İkindi:") }
             SpinBox { id: asrOffset; from: -60; to: 60; editable: true }
 
-            Label { text: languageCombo.currentIndex === 1 ? "المغرب:" : "Maghrib:" }
+            Label { text: t("Maghrib:", "المغرب:", "Akşam:") }
             SpinBox { id: maghribOffset; from: -60; to: 60; editable: true }
 
-            Label { text: languageCombo.currentIndex === 1 ? "العشاء:" : "Isha:" }
+            Label { text: t("Isha:", "العشاء:", "Yatsı:") }
             SpinBox { id: ishaOffset; from: -60; to: 60; editable: true }
         }
 
         RowLayout {
-            Kirigami.FormData.label: languageCombo.currentIndex === 1 ? "تعديل التاريخ الهجري:" : "Hijri Date Offset:"
+            Kirigami.FormData.label: t("Hijri Date Offset:", "تعديل التاريخ الهجري:", "Hicri Tarih Düzeltmesi:")
             SpinBox {
                 id: hijriOffsetSpin
                 from: -5; to: 5
                 editable: true
             }
-            Label { text: languageCombo.currentIndex === 1 ? "أيام" : "days" }
+            Label { text: t("days", "أيام", "gün") }
         }
 
-        CheckBox { id: showBackgroundCheck; text: languageCombo.currentIndex === 1 ? "إظهار الخلفية" : "Show background"; Kirigami.FormData.label: "" }
+        CheckBox { id: showBackgroundCheck; text: t("Show background", "إظهار الخلفية", "Arka planı göster"); Kirigami.FormData.label: "" }
         Label {
-            text: languageCombo.currentIndex === 1 ? "اتركه مفعلاً إذا لم تلاحظ فرقاً" : "Leave checked if no difference"
+            text: t("Leave checked if no difference", "اتركه مفعلاً إذا لم تلاحظ فرقاً", "Fark görmüyorsanız işaretli bırakın")
             font.italic: true
             Layout.fillWidth: true
             opacity: 0.7
         }
 
         // --- SECTION 5: PRIVACY ---
-        Kirigami.Separator { Kirigami.FormData.label: languageCombo.currentIndex === 1 ? "الخصوصية" : "Privacy"; Kirigami.FormData.isSection: true }
+        Kirigami.Separator { Kirigami.FormData.label: t("Privacy", "الخصوصية", "Gizlilik"); Kirigami.FormData.isSection: true }
 
         CheckBox {
             id: forceOfflineCheck
-            text: languageCombo.currentIndex === 1 ? "فرض وضع عدم الاتصال (حساب رياضي فقط)" : "Force Offline Mode (Strictly Mathematical)"
+            text: t("Force Offline Mode (Strictly Mathematical)", "فرض وضع عدم الاتصال (حساب رياضي فقط)", "Çevrimdışı Modu Zorla (Yalnızca Matematiksel)")
             Kirigami.FormData.label: ""
             onCheckedChanged: {
                 if (checked) useCoordsCheck.checked = true;

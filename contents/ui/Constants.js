@@ -1,7 +1,7 @@
 .pragma library
 
 // =============================================================================
-// CONSTANTs
+// CONSTANTS
 // =============================================================================
 
 /** All prayer time keys used throughout the widget */
@@ -70,6 +70,13 @@ const quranReciterNames_ar = [
     "ماهر المعيقلي", "أبو بكر الشاطري", "عبد الله بصفر", "عبد الباسط (مرتل)",
     "الحذيفي", "محمد جبريل",
     "الحصري (مجود)", "المنشاوي (مجود)", "أحمد بن علي العجمي"
+];
+
+const quranReciterNames_tr = [
+    "Minşavi (Murattal)", "Afasi", "Husari (Murattal)",
+    "Abdurrahman es-Sudeys", "Mahir el-Muaykili", "Ebu Bekir eş-Şatri",
+    "Abdullah Basfar", "Abdülbasit (Murattal)", "Huzeyfi", "Muhammed Cibril",
+    "Husari (Mücevved)", "Minşavi (Mücevved)", "Ahmed el-Acemi"
 ];
 
 const prayerEmojis = {

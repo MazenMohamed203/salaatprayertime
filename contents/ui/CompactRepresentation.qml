@@ -43,14 +43,20 @@ Item {
 
     // --- Helper function to get localized text ---
     function getRemainingText() {
-        return (languageIndex === 1) ? "متبقي" : i18n("After");
+        if (languageIndex === 1) return "بعد";
+        if (languageIndex === 2) return "Sonra";
+        return i18n("After");
     }
 
     function getTimeLeftText() {
-        return (languageIndex === 1) ? "الوقت المتبقي:" : i18n("Time Left:");
+        if (languageIndex === 1) return "الوقت المتبقي:";
+        if (languageIndex === 2) return "Kalan Süre:";
+        return i18n("Time Left:");
     }
     function getCompactRemainingWord() {
-        return (languageIndex === 1) ? "متبقي" : "left";
+        if (languageIndex === 1) return "متبقي";
+        if (languageIndex === 2) return "kaldı";
+        return "left";
     }
 
 
@@ -62,16 +68,16 @@ Item {
             return "٠١٢٣٤٥٦٧٨٩".indexOf(d);
         });
 
-        let cleanTime = normalizedTime.replace(/\s*(AM|PM|am|pm|ص|م)\s*/g, '');
+        let cleanTime = normalizedTime.replace(/\s*(AM|PM|am|pm|ص|م|ÖÖ|ÖS|öö|ös)\s*/g, '');
         let parts = cleanTime.split(':');
         if (parts.length < 2) return null;
 
         let hours = parseInt(parts[0], 10);
         let minutes = parseInt(parts[1], 10);
 
-        if ((timeString.toLowerCase().includes('pm') || timeString.includes('م')) && hours !== 12) {
+        if ((timeString.toLowerCase().includes('pm') || timeString.includes('م') || timeString.toUpperCase().includes('ÖS')) && hours !== 12) {
             hours += 12;
-        } else if ((timeString.toLowerCase().includes('am') || timeString.includes('ص')) && hours === 12) {
+        } else if ((timeString.toLowerCase().includes('am') || timeString.includes('ص') || timeString.toUpperCase().includes('ÖÖ')) && hours === 12) {
             hours = 0;
         }
 
@@ -289,6 +295,8 @@ Item {
         text: {
             if (root.languageIndex === 1) {
                 return "تنبيه: باقي 5 دقائق على " + root.nextPrayerName;
+            } else if (root.languageIndex === 2) {
+                return "Uyarı: " + root.nextPrayerName + " vaktine 5 dakika kaldı";
             } else {
                 return "Alert: " + root.nextPrayerName + " in 5 minutes";
             }

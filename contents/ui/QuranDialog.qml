@@ -13,7 +13,7 @@ Dialog {
     property var playerB
     property var adhanStopTimer
 
-    title: (widgetRoot.languageIndex === 1 ? "القرآن الكريم" : "Quran Player") + " (" + widgetRoot.activeReciterName + ")"
+    title: (widgetRoot.languageIndex === 1 ? "القرآن الكريم" : (widgetRoot.languageIndex === 2 ? "Kur'an-ı Kerim" : "Quran Player")) + " (" + widgetRoot.activeReciterName + ")"
     modal: true
     standardButtons: Dialog.Close
     property int dialogWidth: Kirigami.Units.gridUnit * 22
@@ -83,7 +83,7 @@ Dialog {
 
                 PlasmaComponents.Button {
                     Layout.fillWidth: true
-                    text: widgetRoot.languageIndex === 1 ? i18n("تشغيل") : i18n("Play")
+                    text: widgetRoot.languageIndex === 1 ? i18n("تشغيل") : (widgetRoot.languageIndex === 2 ? i18n("Oynat") : i18n("Play"))
                     icon.name: "media-playback-start"
                     enabled: !widgetRoot.isAnyAudioPlaying && !widgetRoot.isFetchingVerse
                     onClicked: {
@@ -103,7 +103,7 @@ Dialog {
                 PlasmaComponents.Button {
                     Layout.fillWidth: true
                     property var activePlayer: widgetRoot.isPlayerA_the_active_verse_player ? playerA : playerB
-                    text: activePlayer.playbackState === MediaPlayer.PlayingState ? (widgetRoot.languageIndex === 1 ? i18n("إيقاف مؤقت") : i18n("Pause")) : (widgetRoot.languageIndex === 1 ? i18n("استئناف") : i18n("Resume"))
+                    text: activePlayer.playbackState === MediaPlayer.PlayingState ? (widgetRoot.languageIndex === 1 ? i18n("إيقاف مؤقت") : (widgetRoot.languageIndex === 2 ? i18n("Duraklat") : i18n("Pause"))) : (widgetRoot.languageIndex === 1 ? i18n("استئناف") : (widgetRoot.languageIndex === 2 ? i18n("Devam Et") : i18n("Resume")))
                     icon.name: activePlayer.playbackState === MediaPlayer.PlayingState ? "media-playback-pause" : "media-playback-start"
                     enabled: (activePlayer.playbackState === MediaPlayer.PlayingState || activePlayer.playbackState === MediaPlayer.PausedState)
                     onClicked: widgetRoot.togglePlayback()

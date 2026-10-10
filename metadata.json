@@ -12,17 +12,19 @@
         "Category": "Date and Time",
         "Description": "Prayer times clock, Quran player and Hijri date on your desktop",
         "Description[ar]": "ساعة الصلاة و القرآن الكريم على مكتبك",
+        "Description[tr]": "Masaüstünüzde ezan vakitleri saati, Kur'an oynatıcı ve hicri takvim",
         "EnabledByDefault": true,
         "FormFactors": [
             "tablet",
             "handset",
             "desktop"
         ],
-        "Icon": "accessories-clock",
+        "Icon": "/icons/mosque.svg",
         "Id": "com.github.mazen.salatprayertime",
         "License": "GPL-3.0+",
         "Name": "Salaat Prayer Times",
         "Name[ar]": "ساعة الصلاة",
+        "Name[tr]": "Ezan Vakitleri",
         "Website": "https://github.com/mazenmohamed203/salaatprayertime"
     },
     "X-Plasma-API-Minimum-Version": "6.0"

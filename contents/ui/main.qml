@@ -130,13 +130,15 @@ PlasmoidItem {
     property var quranReciterIdentifiers: Logic.quranReciterIdentifiers
     property var quranReciterNames: Logic.quranReciterNames
     property var quranReciterNames_ar: Logic.quranReciterNames_ar
+    property var quranReciterNames_tr: Logic.quranReciterNames_tr
 
     property int quranReciterIndex: Plasmoid.configuration.quranReciterIndex || 0
     property string activeReciterIdentifier: quranReciterIdentifiers[quranReciterIndex]
 
     property string activeReciterName: {
         if (root.languageIndex === 1) return quranReciterNames_ar[quranReciterIndex]
-            return quranReciterNames[quranReciterIndex]
+        if (root.languageIndex === 2) return quranReciterNames_tr[quranReciterIndex]
+        return quranReciterNames[quranReciterIndex]
     }
 
     Component { id: notificationComponent; Notification { componentName: "plasma_workspace"; eventId: "notification"; autoDelete: true } }
@@ -512,6 +514,7 @@ PlasmoidItem {
                 text: {
                     if (!root.timeUntilNextPrayer) return "";
                     if (root.languageIndex === 1) return i18n("الوقت المتبقي على الصلاة : %1", root.timeUntilNextPrayer);
+                    else if (root.languageIndex === 2) return i18n("Sıradaki vakte kalan süre: %1", root.timeUntilNextPrayer);
                     else return i18n("Time until next prayer: %1", root.timeUntilNextPrayer);
                 }
                 visible: root.timeUntilNextPrayer !== "" && root.timeUntilNextPrayer !== i18n("Prayer time!")
@@ -577,7 +580,7 @@ PlasmoidItem {
             PlasmaComponents.Button {
                 anchors.horizontalCenter: parent.horizontalCenter
                 width: parent.width - (parent.padding * 2)
-                text: root.languageIndex === 1 ? "القرآن الكريم" : "Quran"
+                text: root.languageIndex === 1 ? "القرآن الكريم" : (root.languageIndex === 2 ? "Kur'an-ı Kerim" : "Quran")
                 visible: Plasmoid.configuration.enableQuran
                 onClicked: {
                     var quranComp = Qt.createComponent("QuranDialog.qml");
@@ -680,7 +683,7 @@ PlasmoidItem {
                 let parts = timeString.split(':')
                 let hours = parseInt(parts[0], 10)
                 let minutes = parseInt(parts[1], 10)
-                let period = hours >= 12 ? (root.languageIndex === 1 ? "م" : "PM") : (root.languageIndex === 1 ? "ص" : "AM")
+                let period = hours >= 12 ? (root.languageIndex === 1 ? "م" : (root.languageIndex === 2 ? "ÖS" : "PM")) : (root.languageIndex === 1 ? "ص" : (root.languageIndex === 2 ? "ÖÖ" : "AM"))
                 hours = hours % 12 || 12
                 return root.toNativeDigits(`${hours}:${String(minutes).padStart(2, '0')}`) + ` ${period}`
             }
@@ -699,16 +702,23 @@ PlasmoidItem {
     }
 
     function getPrayerName(langIndex, prayerKey) {
-        if (langIndex === 0) {
-            if (prayerKey === "Lastthird") return "Last Third";
-            return prayerKey;
+        if (langIndex === 1) {
+            const arabicPrayers = {
+                "Fajr": "الفجر", "Sunrise": "الشروق", "Dhuhr": "الظهر",
+                "Asr": "العصر", "Maghrib": "المغرب", "Isha": "العشاء",
+                "Midnight": "منتصف الليل", "Lastthird": "الثلث الأخير"
+            }
+            return arabicPrayers[prayerKey] || prayerKey
+        } else if (langIndex === 2) {
+            const turkishPrayers = {
+                "Fajr": "İmsak", "Sunrise": "Güneş", "Dhuhr": "Öğle",
+                "Asr": "İkindi", "Maghrib": "Akşam", "Isha": "Yatsı",
+                "Midnight": "Gece Yarısı", "Lastthird": "Son Üçte Bir"
+            }
+            return turkishPrayers[prayerKey] || prayerKey
         }
-        const arabicPrayers = {
-            "Fajr": "الفجر", "Sunrise": "الشروق", "Dhuhr": "الظهر",
-            "Asr": "العصر", "Maghrib": "المغرب", "Isha": "العشاء",
-            "Midnight": "منتصف الليل", "Lastthird": "الثلث الأخير"
-        }
-        return arabicPrayers[prayerKey] || prayerKey
+        if (prayerKey === "Lastthird") return "Last Third";
+        return prayerKey;
     }
 
     function playAdhanAudio(prayerName) {
@@ -816,10 +826,13 @@ PlasmoidItem {
                         if (!root.preNotifiedPrayers[notificationKey]) {
                             var notification = notificationComponent.createObject(root);
 
-                            // Bilingual Pre-Adhan Logic
+                            // Multilingual Pre-Adhan Logic
                             if (root.languageIndex === 1) {
                                 notification.title = i18n("باقي %1 دقائق على صلاة %2", minutesUntil, getPrayerName(root.languageIndex, prayerName));
                                 notification.text = i18n("تذكير بقرب موعد الأذان");
+                            } else if (root.languageIndex === 2) {
+                                notification.title = i18n("%1 vaktine %2 dakika kaldı", getPrayerName(root.languageIndex, prayerName), minutesUntil);
+                                notification.text = i18n("Yaklaşan ezan vakti hatırlatması");
                             } else {
                                 notification.title = i18n("%1 in %2 minutes", getPrayerName(root.languageIndex, prayerName), minutesUntil);
                                 notification.text = i18n("Prayer time reminder");
@@ -867,6 +880,9 @@ PlasmoidItem {
                     if (root.languageIndex === 1) {
                         notification.title = i18n("مرت %1 دقائق على صلاة %2", notificationWindow, getPrayerName(root.languageIndex, prayerName));
                         notification.text = i18n("تذكير: موعد الإقامة");
+                    } else if (root.languageIndex === 2) {
+                        notification.title = i18n("%1 vaktinden %2 dakika geçti", getPrayerName(root.languageIndex, prayerName), notificationWindow);
+                        notification.text = i18n("Hatırlatma: Kamet / Namaz vakti");
                     } else {
                         notification.title = i18n("%1 was %2 minutes ago", getPrayerName(root.languageIndex, prayerName), notificationWindow);
                         notification.text = i18n("Reminder: Time for Iqamah");
@@ -916,7 +932,16 @@ PlasmoidItem {
                         } else {
                             if (Plasmoid.configuration.notifications) {
                                 var notification = notificationComponent.createObject(root)
-                                notification.title = i18n("It's %1 time", getPrayerName(root.languageIndex, root.activePrayer))
+                                if (root.languageIndex === 1) {
+                                    notification.title = i18n("حان الآن موعد صلاة %1", getPrayerName(root.languageIndex, root.activePrayer))
+                                    notification.text = i18n("حي على الصلاة")
+                                } else if (root.languageIndex === 2) {
+                                    notification.title = i18n("%1 vakti girdi", getPrayerName(root.languageIndex, root.activePrayer))
+                                    notification.text = i18n("Haydi namaza")
+                                } else {
+                                    notification.title = i18n("It's %1 time", getPrayerName(root.languageIndex, root.activePrayer))
+                                    notification.text = i18n("Time to pray")
+                                }
                                 notification.sendEvent()
                             }
                             if (root.activePrayer !== "Sunrise") playAdhanAudio(root.activePrayer)
@@ -1049,14 +1074,16 @@ PlasmoidItem {
 
             let arMonths = ["محرم", "صفر", "ربيع الأول", "ربيع الآخر", "جمادى الأولى", "جمادى الآخرة", "رجب", "شعبان", "رمضان", "شوال", "ذو القعدة", "ذو الحجة"]
             let enMonths = ["Muharram", "Safar", "Rabi Al-Awwal", "Rabi Al-Thani", "Jumada Al-Awwal", "Jumada Al-Thani", "Rajab", "Sha'ban", "Ramadan", "Shawwal", "Dhu Al-Qi'dah", "Dhu Al-Hijjah"]
+            let trMonths = ["Muharrem", "Sefer", "Rebiülevvel", "Rebiülahir", "Cemaziyelevvel", "Cemaziyelahir", "Recep", "Şaban", "Ramazan", "Şevval", "Zilkade", "Zilhicce"]
 
             let mIndex = rawMonth - 1
             if (mIndex < 0) mIndex = 0
-                if (mIndex > 11) mIndex = 11
+            if (mIndex > 11) mIndex = 11
 
-                    let monthName = (root.languageIndex === 1) ? arMonths[mIndex] : enMonths[mIndex]
+            let monthName = (root.languageIndex === 1) ? arMonths[mIndex] : ((root.languageIndex === 2) ? trMonths[mIndex] : enMonths[mIndex])
+            let eraSuffix = (root.languageIndex === 1) ? " هـ" : ((root.languageIndex === 2) ? " H." : " AH")
 
-                    root.hijriDateDisplay = root.toNativeDigits(root.currentHijriDay) + ` ${monthName} ` + root.toNativeDigits(root.currentHijriYear)
+            root.hijriDateDisplay = root.toNativeDigits(root.currentHijriDay) + ` ${monthName} ` + root.toNativeDigits(root.currentHijriYear) + eraSuffix
         }
         updateSpecialIslamicDateMessage()
     }
@@ -1071,26 +1098,25 @@ PlasmoidItem {
             return
         }
 
-        if (month === 9) message = (root.languageIndex === 1) ? "شهر رمضان" : "Month of Ramadan"
-            else if (month === 10 && day === 1) message = (root.languageIndex === 1) ? "عيد الفطر" : "Eid al-Fitr"
+        if (month === 9) message = (root.languageIndex === 1) ? "شهر رمضان" : (root.languageIndex === 2 ? "Ramazan Ayı" : "Month of Ramadan")
+            else if (month === 10 && day === 1) message = (root.languageIndex === 1) ? "عيد الفطر" : (root.languageIndex === 2 ? "Ramazan Bayramı" : "Eid al-Fitr")
                 else if (month === 12) {
                     if (day >= 1 && day <= 10) {
-                        message = (root.languageIndex === 1) ? "العشر الأوائل من ذي الحجة" : "First 10 Days of Dhu al-Hijjah"
-                        if (day === 9) message = (root.languageIndex === 1) ? "يوم عرفة" : "Day of Arafah"
-                            if (day === 10) message = (root.languageIndex === 1) ? "عيد الأضحى" : "Eid al-Adha"
-                    } else if (day >= 11 && day <= 13) message = (root.languageIndex === 1) ? "أيام التشريق" : "Days of Tashreeq"
+                        message = (root.languageIndex === 1) ? "العشر الأوائل من ذي الحجة" : (root.languageIndex === 2 ? "Zilhicce'nin İlk 10 Günü" : "First 10 Days of Dhu al-Hijjah")
+                        if (day === 9) message = (root.languageIndex === 1) ? "يوم عرفة" : (root.languageIndex === 2 ? "Arefe Günü" : "Day of Arafah")
+                            if (day === 10) message = (root.languageIndex === 1) ? "عيد الأضحى" : (root.languageIndex === 2 ? "Kurban Bayramı" : "Eid al-Adha")
+                    } else if (day >= 11 && day <= 13) message = (root.languageIndex === 1) ? "أيام التشريق" : (root.languageIndex === 2 ? "Teşrik Günleri" : "Days of Tashreeq")
                 }
-                else if (month === 1 && day === 1) message = (root.languageIndex === 1) ? "رأس السنة الهجرية" : "Islamic New Year"
-                    else if (month === 1 && day === 10) message = (root.languageIndex === 1) ? "يوم عاشوراء" : "Day of Ashura"
+                else if (month === 1 && day === 1) message = (root.languageIndex === 1) ? "رأس السنة الهجرية" : (root.languageIndex === 2 ? "Hicri Yılbaşı" : "Islamic New Year")
+                    else if (month === 1 && day === 10) message = (root.languageIndex === 1) ? "يوم عاشوراء" : (root.languageIndex === 2 ? "Aşure Günü" : "Day of Ashura")
 
                         if (message === "") {
-                            if (day === 13 || day === 14 || day === 15) message = (root.languageIndex === 1) ? "الأيام البيض" : "Ayyām al-Bīḍ (The White Days)"
-                                else if (day === 12) message = (root.languageIndex === 1) ? "غداً تبدأ الأيام البيض" : "White Days begin tomorrow"
-                                    else if (day === 11) message = (root.languageIndex === 1) ? "باقي يومان على الأيام البيض" : "2 days until White Days"
-
+                            if (day === 13 || day === 14 || day === 15) message = (root.languageIndex === 1) ? "الأيام البيض" : (root.languageIndex === 2 ? "Eyyam-ı Biyz (Aydınlık Günler)" : "Ayyām al-Bīḍ (The White Days)")
+                                else if (day === 12) message = (root.languageIndex === 1) ? "غداً تبدأ الأيام البيض" : (root.languageIndex === 2 ? "Eyyam-ı Biyz Yarın Başlıyor" : "White Days begin tomorrow")
+                                    else if (day === 11) message = (root.languageIndex === 1) ? "باقي يومان على الأيام البيض" : (root.languageIndex === 2 ? "Eyyam-ı Biyz'e 2 Gün Kaldı" : "2 days until White Days")
 
                                         if (message === "" && (month === 1 || month === 7 || month === 11 || month === 12)) {
-                                            message = (root.languageIndex === 1) ? "الأشهر الحرم" : "Al-Ashhur al-Ḥurum (The Sacred Months)";
+                                            message = (root.languageIndex === 1) ? "الأشهر الحرم" : (root.languageIndex === 2 ? "Haram Aylar" : "Al-Ashhur al-Ḥurum (The Sacred Months)");
                                         }
                         }
 
@@ -1130,6 +1156,13 @@ PlasmoidItem {
                     let responseData = JSON.parse(xhr.responseText).data
                     root.times = responseData.timings
                     root.times.apiGregorianDate = responseData.date.gregorian.date
+
+                    if (responseData.meta && responseData.meta.latitude && responseData.meta.longitude) {
+                        if (!Plasmoid.configuration.useCoordinates || !Plasmoid.configuration.latitude) {
+                            Plasmoid.configuration.latitude = responseData.meta.latitude.toString()
+                            Plasmoid.configuration.longitude = responseData.meta.longitude.toString()
+                        }
+                    }
 
                     // The API has already applied the offset for us!
                     root.rawHijriDataFromApi = responseData.date.hijri
@@ -1258,9 +1291,11 @@ PlasmoidItem {
 
             let arMonths = ["محرم", "صفر", "ربيع الأول", "ربيع الآخر", "جمادى الأولى", "جمادى الآخرة", "رجب", "شعبان", "رمضان", "شوال", "ذو القعدة", "ذو الحجة"]
             let enMonths = ["Muharram", "Safar", "Rabi Al-Awwal", "Rabi Al-Akhar", "Jumada Al-Awwal", "Jumada Al-Akhirah", "Rajab", "Shaban", "Ramadan", "Shawwal", "Dhu Al-Qidah", "Dhu Al-Hijjah"]
-            let monthName = root.languageIndex === 1 ? arMonths[hDate.month - 1] : enMonths[hDate.month - 1]
+            let trMonths = ["Muharrem", "Sefer", "Rebiülevvel", "Rebiülahir", "Cemaziyelevvel", "Cemaziyelahir", "Recep", "Şaban", "Ramazan", "Şevval", "Zilkade", "Zilhicce"]
+            let monthName = root.languageIndex === 1 ? arMonths[hDate.month - 1] : (root.languageIndex === 2 ? trMonths[hDate.month - 1] : enMonths[hDate.month - 1])
+            let eraSuffix = root.languageIndex === 1 ? "هـ" : (root.languageIndex === 2 ? "H." : "AH")
             
-            root.hijriDateDisplay = hDate.day + " " + monthName + " " + hDate.year + " " + (root.languageIndex === 1 ? "هـ" : "AH")
+            root.hijriDateDisplay = hDate.day + " " + monthName + " " + hDate.year + " " + eraSuffix
             updateSpecialIslamicDateMessage()
         }
     }
