@@ -18,7 +18,7 @@ Quran api from [Quran API](https://alquran.cloud/api).
 * Hijri date display with manual adjustment.
 * Special Islamic date notifications (e.g., Ramadan, Eid).
 * Quran Player with many reciters
-* English and Arabic language support.
+* English, Arabic and Turkish language support.
 * 12/24 hour format & prayer notifications.
 * Custom Adhan sound support
 * Time until next prayer countdown
