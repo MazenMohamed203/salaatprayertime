@@ -22,6 +22,8 @@ Quran api from [Quran API](https://alquran.cloud/api).
 * 12/24 hour format & prayer notifications.
 * Custom Adhan sound support
 * Time until next prayer countdown
+* Compact view that follows the panel orientation: on a vertical panel (left/right) the labels are stacked instead of being shown side by side
+* Pre-prayer glow that uses the system accent color (it can be set back to the amber warning color in the settings)
 
 
 
