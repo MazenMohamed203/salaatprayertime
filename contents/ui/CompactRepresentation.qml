@@ -14,14 +14,57 @@ Item {
     property bool mediaBtnEnabled: Plasmoid.configuration.showCompactMediaButton !== undefined ? Plasmoid.configuration.showCompactMediaButton : true
     property bool showMediaBtn: quranEnabled && mediaBtnEnabled
 
+    // --- Panel orientation ---
+    // In a vertical panel (left/right) the compact styles stack their labels and
+    // the widget grows along the panel instead of across it.
+    readonly property bool verticalPanel: Plasmoid.formFactor === PlasmaCore.Types.Vertical
+
     property real customFontSize: Kirigami.Theme.defaultFont.pointSize * 1.05
 
-    property real baseWidth: (compactStyle === 1) ? Kirigami.Units.gridUnit * 7.5 :
+    // Space kept free for the media button: next to the labels in a horizontal
+    // panel, below them in a vertical one.
+    readonly property real mediaButtonSpace: showMediaBtn ? Kirigami.Units.iconSizes.small + Kirigami.Units.smallSpacing : 0
+
+    // Length of the widget along a horizontal panel, per compact style
+    readonly property real compactLength: (compactStyle === 1) ? Kirigami.Units.gridUnit * 7.5 :
     (compactStyle === 3 || compactStyle === 5) ? Kirigami.Units.gridUnit * 9.5 :
     (compactStyle === 4) ? Kirigami.Units.gridUnit * 8.5 :
     Kirigami.Units.gridUnit * 7.5
 
-    implicitWidth: showMediaBtn ? baseWidth + Kirigami.Units.iconSizes.small + Kirigami.Units.smallSpacing : baseWidth
+    // Along a vertical panel the labels are stacked, which needs a lot less room
+    readonly property real compactVerticalLength: {
+        switch (compactStyle) {
+        case 1: return Kirigami.Units.gridUnit * 5.5  // two stacked two-line blocks + separator
+        default: return Kirigami.Units.gridUnit * 3.5 // a single two-line block
+        }
+    }
+
+    // Total length along the panel, media button included
+    readonly property real horizontalLength: compactLength + mediaButtonSpace
+    readonly property real verticalLength: compactVerticalLength + mediaButtonSpace
+
+    // A panel gives its applets the panel thickness in one dimension and the
+    // length advertised here in the other one: a horizontal panel reads
+    // Layout.preferredWidth, a vertical one Layout.preferredHeight (see
+    // AppletQuickItem::connectLayoutAttached in libplasma). Both dimensions have
+    // to be declared, since these replace the size hints of the whole applet.
+    Layout.minimumWidth: verticalPanel ? 0 : horizontalLength
+    Layout.minimumHeight: verticalPanel ? verticalLength : 0
+    Layout.preferredWidth: verticalPanel ? -1 : horizontalLength
+    Layout.preferredHeight: verticalPanel ? verticalLength : -1
+
+    implicitWidth: verticalPanel ? Kirigami.Units.gridUnit * 2 : horizontalLength
+    implicitHeight: verticalPanel ? verticalLength : 0
+
+    // --- Pre-prayer glow color ---
+    // Follows the system accent color, unless the amber warning color is kept
+    // (configurable, defaults to the accent color).
+    readonly property color glowColor: Plasmoid.configuration.glowFollowsAccentColor === false ?
+                                       Qt.rgba(1.0, 0.84, 0.0, 1.0) : Kirigami.Theme.highlightColor
+
+    function glowColorWithAlpha(alpha) {
+        return Qt.rgba(glowColor.r, glowColor.g, glowColor.b, alpha)
+    }
 
     // --- Properties passed from main.qml ---
     property var prayerTimesData: ({})
@@ -173,12 +216,12 @@ Item {
             loops: Animation.Infinite
             running: root.isPrePrayerAlertActive
             onRunningChanged: if (!running) alertBackground.color = "transparent"
-            ColorAnimation { from: "transparent"; to: Qt.rgba(1.0, 0.84, 0.0, 0.15); duration: 2000; easing.type: Easing.InOutSine }
-            ColorAnimation { from: Qt.rgba(1.0, 0.84, 0.0, 0.15); to: "transparent"; duration: 2000; easing.type: Easing.InOutSine }
+            ColorAnimation { from: "transparent"; to: root.glowColorWithAlpha(0.15); duration: 2000; easing.type: Easing.InOutSine }
+            ColorAnimation { from: root.glowColorWithAlpha(0.15); to: "transparent"; duration: 2000; easing.type: Easing.InOutSine }
         }
 
         border.width: root.isPrePrayerAlertActive ? 1.5 : 0
-        border.color: Qt.rgba(1.0, 0.84, 0.0, 0.4)
+        border.color: root.glowColorWithAlpha(0.4)
 
         // Subtler outer shadow/glow
         Rectangle {
@@ -188,7 +231,7 @@ Item {
             color: "transparent"
             radius: parent.radius + 1
             border.width: root.isPrePrayerAlertActive ? 1 : 0
-            border.color: Qt.rgba(1.0, 0.84, 0.0, 0.08)
+            border.color: root.glowColorWithAlpha(0.08)
             z: -1
         }
     }
@@ -203,9 +246,9 @@ Item {
         opacity: 0.0
 
         gradient: Gradient {
-            GradientStop { position: 0.0; color: Qt.rgba(1.0, 0.84, 0.0, 0.05) }
-            GradientStop { position: 0.5; color: Qt.rgba(1.0, 0.84, 0.0, 0.12) }
-            GradientStop { position: 1.0; color: Qt.rgba(1.0, 0.84, 0.0, 0.05) }
+            GradientStop { position: 0.0; color: root.glowColorWithAlpha(0.05) }
+            GradientStop { position: 0.5; color: root.glowColorWithAlpha(0.12) }
+            GradientStop { position: 1.0; color: root.glowColorWithAlpha(0.05) }
         }
 
         SequentialAnimation on opacity {
@@ -249,8 +292,8 @@ Item {
         anchors.fill: parent
         anchors.leftMargin: 2
         anchors.topMargin: 2
-        anchors.bottomMargin: 2
-        anchors.rightMargin: root.showMediaBtn ? (Kirigami.Units.iconSizes.small + Kirigami.Units.smallSpacing + 2) : 2
+        anchors.bottomMargin: (root.verticalPanel ? root.mediaButtonSpace : 0) + 2
+        anchors.rightMargin: (root.verticalPanel ? 0 : root.mediaButtonSpace) + 2
 
         source: getStyleSource(root.compactStyle)
 
@@ -266,9 +309,9 @@ Item {
         id: mediaButton
         visible: root.showMediaBtn
 
-        anchors.right: parent.right
-        anchors.verticalCenter: parent.verticalCenter
-        anchors.rightMargin: 2
+        // Pinned to the right edge in a horizontal panel, to the bottom edge in a vertical one
+        x: root.verticalPanel ? (root.width - width) / 2 : root.width - width - 2
+        y: root.verticalPanel ? root.height - height - 2 : (root.height - height) / 2
 
         width: Kirigami.Units.iconSizes.small
         height: Kirigami.Units.iconSizes.small

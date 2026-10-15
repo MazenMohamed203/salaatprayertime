@@ -38,6 +38,7 @@ KCM.SimpleKCM {
     property alias cfg_showLastThird: showLastThirdCheck.checked
     property alias cfg_showEmojis: showEmojisCheck.checked
     property alias cfg_enablePrePrayerGlow: enablePrePrayerGlowCheck.checked
+    property alias cfg_glowFollowsAccentColor: glowFollowsAccentColorCheck.checked
     property alias cfg_playPreAdhanSound: preAdhanSoundCheck.checked
     property alias cfg_postNotificationMinutes: postNotificationSpinBox.value
     property alias cfg_playPostAdhanSound: postAdhanSoundCheck.checked
@@ -89,6 +90,7 @@ KCM.SimpleKCM {
     property var cfg_emailDefault
     property var cfg_enableQuranDefault
     property var cfg_fajrOffsetMinutesDefault
+    property var cfg_glowFollowsAccentColorDefault
     property var cfg_hijriOffsetDefault
     property var cfg_hourFormatDefault
     property var cfg_ishaOffsetMinutesDefault
@@ -419,8 +421,14 @@ KCM.SimpleKCM {
         }
         CheckBox {
             id: enablePrePrayerGlowCheck
-            text: t("Enable 5-minute pre-prayer yellow glow", "تفعيل الوميض الأصفر قبل الصلاة بـ 5 دقائق", "Vakitten 5 dakika önce sarı uyarı parlamasını etkinleştir")
+            text: t("Enable 5-minute pre-prayer glow", "تفعيل الوميض قبل الصلاة بـ 5 دقائق", "Vakitten 5 dakika önce uyarı parlamasını etkinleştir")
             Kirigami.FormData.label: ""
+        }
+        CheckBox {
+            id: glowFollowsAccentColorCheck
+            text: t("Use the system accent color for the glow", "استخدام لون التمييز في النظام للوميض", "Parıltı için sistem vurgu rengini kullan")
+            Kirigami.FormData.label: ""
+            visible: enablePrePrayerGlowCheck.checked
         }
 
         Kirigami.Separator { Kirigami.FormData.label: t("Notifications", "التنبيهات", "Bildirimler"); Kirigami.FormData.isSection: true }

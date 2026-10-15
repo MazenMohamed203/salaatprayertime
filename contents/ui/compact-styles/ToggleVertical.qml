@@ -26,7 +26,8 @@ Label {
     text: {
         if (!compactRoot) return ""
         if (!compactRoot.toggleViewIsPrayerTime) {
-            return compactRoot.getTimeLeftText() + "\n" + compactRoot.countdownText.substring(0, 5)
+            // "Time Left:" is too wide to stay readable in a vertical panel
+            return (compactRoot.verticalPanel ? compactRoot.getCompactRemainingWord() : compactRoot.getTimeLeftText()) + "\n" + compactRoot.countdownText.substring(0, 5)
         } else {
             return compactRoot.nextPrayerName + "\n" + compactRoot.nextPrayerTime
         }

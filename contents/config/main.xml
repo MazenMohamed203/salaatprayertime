@@ -59,6 +59,9 @@
     <entry name="enablePrePrayerGlow" type="Bool">
       <default>true</default>
     </entry>
+    <entry name="glowFollowsAccentColor" type="Bool">
+      <default>true</default>
+    </entry>
     <entry name="playPreAdhanSound" type="Bool">
       <default>false</default>
       <label>Play a sound for the pre-Adhan reminder notification.</label>
